@@ -8,10 +8,14 @@ import SignupPage from '@/pages/auth/SignupPage'
 import ListingsPage from '@/pages/ListingsPage'
 import ListingDetailPage from '@/pages/ListingDetailPage'
 import ChatPage from '@/pages/ChatPage'
+import UserProfilePage from '@/pages/UserProfilePage'
 import SellerCreateListingPage from '@/pages/seller/CreateListingPage'
 import SellerMyListingsPage from '@/pages/seller/MyListingsPage'
+import SellerEditListingPage from '@/pages/seller/EditListingPage'
+import BrokerRequestsPage from '@/pages/broker/RequestsPage'
 import AdminModerationPage from '@/pages/admin/ModerationPage'
 import AdminRevenuePage from '@/pages/admin/RevenuePage'
+import AdminUserManagementPage from '@/pages/admin/UserManagementPage'
 import UserAIRecommendPage from '@/pages/user/AIRecommendPage'
 import TestDataPage from '@/pages/TestDataPage'
 
@@ -37,16 +41,22 @@ function App() {
         {/* Chat Route */}
         <Route path="/messages/:id" element={<ChatPage />} />
 
+        {/* User Routes */}
+        <Route path="/user/profile" element={<UserProfilePage />} />
+        <Route path="/user/ai-recommend" element={<UserAIRecommendPage />} />
+
         {/* Seller Routes */}
         <Route path="/seller/create-listing" element={<SellerCreateListingPage />} />
         <Route path="/seller/my-listings" element={<SellerMyListingsPage />} />
+        <Route path="/seller/:id/edit" element={<SellerEditListingPage />} />
 
-        {/* User Routes */}
-        <Route path="/user/ai-recommend" element={<UserAIRecommendPage />} />
+        {/* Broker Routes */}
+        <Route path="/broker/requests" element={<BrokerRequestsPage />} />
 
         {/* Admin Routes */}
         <Route path="/admin/moderation" element={<AdminModerationPage />} />
         <Route path="/admin/revenue" element={<AdminRevenuePage />} />
+        <Route path="/admin/users" element={<AdminUserManagementPage />} />
 
         {/* Test Route */}
         <Route path="/test-data" element={<TestDataPage />} />

@@ -28,6 +28,20 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
             <Link to="/admin/revenue" className="text-gray-600 hover:text-amber-600 font-medium transition">
               Doanh thu
             </Link>
+            <Link to="/admin/users" className="text-gray-600 hover:text-amber-600 font-medium transition">
+              Người dùng
+            </Link>
+          </>
+        )
+      case 'broker':
+        return (
+          <>
+            <Link to="/listings" className="text-gray-600 hover:text-amber-600 font-medium transition">
+              Tin đăng
+            </Link>
+            <Link to="/broker/requests" className="text-gray-600 hover:text-amber-600 font-medium transition">
+              Yêu cầu takeover
+            </Link>
           </>
         )
       case 'seller':
@@ -87,7 +101,13 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
           <div className="flex items-center space-x-4">
             {isAuthenticated && user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700 font-medium">{user.name}</span>
+                <Link
+                  to="/user/profile"
+                  className="text-gray-600 hover:text-amber-600 font-medium transition"
+                  title="Hồ sơ cá nhân"
+                >
+                  👤 {user.name}
+                </Link>
                 <button
                   onClick={handleLogout}
                   className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg font-medium transition"

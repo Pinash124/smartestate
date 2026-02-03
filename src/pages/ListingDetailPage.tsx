@@ -11,7 +11,6 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState<Listing | null>(null)
   const [showPhone, setShowPhone] = useState(false)
   const [showReportForm, setShowReportForm] = useState(false)
-  const [showChatForm, setShowChatForm] = useState(false)
   const [reportReason, setReportReason] = useState('')
   const [reportNote, setReportNote] = useState('')
   const [loading, setLoading] = useState(true)
