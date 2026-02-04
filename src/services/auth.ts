@@ -1,13 +1,5 @@
 import { User, UserRole } from '@/types';
 
-const ROLES = {
-  GUEST: 'guest' as const,
-  USER: 'user' as const,
-  SELLER: 'seller' as const,
-  BROKER: 'broker' as const,
-  ADMIN: 'admin' as const,
-};
-
 const PERMISSIONS: Record<UserRole, string[]> = {
   guest: ['browse_listings', 'register', 'login'],
   user: [

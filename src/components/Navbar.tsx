@@ -22,6 +22,10 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
       case 'admin':
         return (
           <>
+            {/* Thêm link Dashboard cho Admin */}
+            <Link to="/admin" className="text-amber-600 font-bold hover:text-amber-700 transition">
+              Bảng điều khiển
+            </Link>
             <Link to="/admin/moderation" className="text-gray-600 hover:text-amber-600 font-medium transition">
               Duyệt tin
             </Link>
