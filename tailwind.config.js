@@ -10,12 +10,6 @@ export default {
         primary: '#fbbf24',
         'primary-dark': '#f59e0b',
       },
-    },
-  },
-  plugins: [],
-}
-        },
-      },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
       },
