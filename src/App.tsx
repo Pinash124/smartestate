@@ -18,12 +18,12 @@ import AdminRevenuePage from '@/pages/admin/RevenuePage'
 import AdminUserManagementPage from '@/pages/admin/UserManagementPage'
 import UserAIRecommendPage from '@/pages/user/AIRecommendPage'
 import TestDataPage from '@/pages/TestDataPage'
+import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(authService.isAuthenticated())
 
   useEffect(() => {
-    // Kiểm tra xem người dùng có đăng nhập không khi tải lại trang
     setIsAuthenticated(authService.isAuthenticated())
   }, [])
 
@@ -53,7 +53,8 @@ function App() {
         {/* Broker Routes */}
         <Route path="/broker/requests" element={<BrokerRequestsPage />} />
 
-        {/* Admin Routes */}
+        {/* Admin Routes - Đã xóa trùng lặp */}
+        <Route path="/admin" element={<AdminDashboardPage />} />
         <Route path="/admin/moderation" element={<AdminModerationPage />} />
         <Route path="/admin/revenue" element={<AdminRevenuePage />} />
         <Route path="/admin/users" element={<AdminUserManagementPage />} />
@@ -66,4 +67,3 @@ function App() {
 }
 
 export default App
-
