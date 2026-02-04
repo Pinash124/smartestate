@@ -17,6 +17,7 @@ import AdminModerationPage from '@/pages/admin/ModerationPage'
 import AdminRevenuePage from '@/pages/admin/RevenuePage'
 import AdminUserManagementPage from '@/pages/admin/UserManagementPage'
 import UserAIRecommendPage from '@/pages/user/AIRecommendPage'
+import UserFavoritesPage from '@/pages/user/FavoritesPage'
 import TestDataPage from '@/pages/TestDataPage'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 
@@ -43,7 +44,12 @@ function App() {
 
         {/* User Routes */}
         <Route path="/user/profile" element={<UserProfilePage />} />
+        <Route path="/profile" element={<UserProfilePage />} />
         <Route path="/user/ai-recommend" element={<UserAIRecommendPage />} />
+        <Route path="/recommend" element={<UserAIRecommendPage />} />
+        <Route path="/user/favorites" element={<UserFavoritesPage />} />
+        <Route path="/favorite" element={<UserFavoritesPage />} />
+        <Route path="/favorites" element={<UserFavoritesPage />} />
 
         {/* Seller Routes */}
         <Route path="/seller/create-listing" element={<SellerCreateListingPage />} />

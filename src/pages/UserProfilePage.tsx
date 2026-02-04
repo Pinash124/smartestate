@@ -2,8 +2,23 @@ import { useState, useEffect } from 'react'
 import { authService } from '../services/auth'
 import { User } from '../types'
 
+const previewUser: User = {
+  id: 0,
+  name: 'Khách dùng thử',
+  email: 'guest@smartestate.vn',
+  password: '',
+  role: 'guest',
+  profile: {
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Guest',
+  },
+  createdAt: new Date(),
+  updatedAt: new Date(),
+}
+
 export default function UserProfilePage() {
   const user = authService.getCurrentUser()
+  const isPreview = !user
+  const displayUser = user || previewUser
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -16,25 +31,15 @@ export default function UserProfilePage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name,
-        email: user.email,
-        phone: user.profile.phone || '',
-        address: user.profile.address || '',
-        password: '',
-        confirmPassword: '',
-      })
-    }
+    setFormData({
+      name: displayUser.name,
+      email: displayUser.email,
+      phone: displayUser.profile.phone || '',
+      address: displayUser.profile.address || '',
+      password: '',
+      confirmPassword: '',
+    })
   }, [user])
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
-        <p className="text-red-600">Vui lòng đăng nhập</p>
-      </div>
-    )
-  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -47,6 +52,9 @@ export default function UserProfilePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setMessage('')
+    if (!user) {
+      return
+    }
 
     // Validation
     if (!formData.name || !formData.email) {
@@ -88,37 +96,45 @@ export default function UserProfilePage() {
               {/* Avatar */}
               <div className="w-24 h-24 mx-auto bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mb-4">
                 <span className="text-4xl text-white font-bold">
-                  {user.name.charAt(0).toUpperCase()}
+                  {displayUser.name.charAt(0).toUpperCase()}
                 </span>
               </div>
 
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{user.name}</h2>
-              <p className="text-gray-600 text-sm mb-4">{user.email}</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">{displayUser.name}</h2>
+              <p className="text-gray-600 text-sm mb-4">{displayUser.email}</p>
 
               {/* Role Badge */}
               <div className="inline-block bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-4">
-                {user.role === 'guest'
+                {displayUser.role === 'guest'
                   ? 'Khách'
-                  : user.role === 'user'
+                  : displayUser.role === 'user'
                   ? 'Người dùng'
-                  : user.role === 'seller'
+                  : displayUser.role === 'seller'
                   ? 'Chủ bất động sản'
-                  : user.role === 'broker'
+                  : displayUser.role === 'broker'
                   ? 'Broker'
                   : 'Quản trị viên'}
               </div>
 
               <p className="text-gray-600 text-xs mb-6">
-                Đã đăng ký: {new Date(user.createdAt).toLocaleDateString('vi-VN')}
+                Đã đăng ký: {new Date(displayUser.createdAt).toLocaleDateString('vi-VN')}
               </p>
 
-              {!isEditing && (
+              {!isEditing && !isPreview && (
                 <button
                   onClick={() => setIsEditing(true)}
                   className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
                 >
                   ✏️ Chỉnh sửa hồ sơ
                 </button>
+              )}
+              {isPreview && (
+                <a
+                  href="/login"
+                  className="inline-flex items-center justify-center w-full bg-gray-100 text-gray-600 py-2 rounded-lg hover:bg-gray-200 transition"
+                >
+                  Đăng nhập để chỉnh sửa
+                </a>
               )}
             </div>
           </div>
@@ -253,37 +269,37 @@ export default function UserProfilePage() {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Tên</p>
-                    <p className="text-lg font-medium text-gray-900">{user.name}</p>
+                    <p className="text-lg font-medium text-gray-900">{displayUser.name}</p>
                   </div>
 
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Email</p>
-                    <p className="text-lg font-medium text-gray-900">{user.email}</p>
+                    <p className="text-lg font-medium text-gray-900">{displayUser.email}</p>
                   </div>
 
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Số điện thoại</p>
                     <p className="text-lg font-medium text-gray-900">
-                      {user.profile.phone || 'Chưa cập nhật'}
+                      {displayUser.profile.phone || 'Chưa cập nhật'}
                     </p>
                   </div>
 
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Địa chỉ</p>
                     <p className="text-lg font-medium text-gray-900">
-                      {user.profile.address || 'Chưa cập nhật'}
+                      {displayUser.profile.address || 'Chưa cập nhật'}
                     </p>
                   </div>
 
                   <div className="pt-4 border-t">
                     <p className="text-sm text-gray-600 mb-1">Vai trò</p>
-                    <p className="text-lg font-medium text-gray-900">{user.role}</p>
+                    <p className="text-lg font-medium text-gray-900">{displayUser.role}</p>
                   </div>
 
                   <div>
                     <p className="text-sm text-gray-600 mb-1">Ngày đăng ký</p>
                     <p className="text-lg font-medium text-gray-900">
-                      {new Date(user.createdAt).toLocaleDateString('vi-VN')}
+                      {new Date(displayUser.createdAt).toLocaleDateString('vi-VN')}
                     </p>
                   </div>
                 </div>

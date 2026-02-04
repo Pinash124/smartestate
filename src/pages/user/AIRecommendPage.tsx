@@ -5,6 +5,7 @@ import { Listing } from '../../types'
 
 export default function AIRecommendPage() {
   const user = authService.getCurrentUser()
+  const previewUserId = user?.id ?? 0
   const [transaction, setTransaction] = useState('buy')
   const [propertyTypes, setPropertyTypes] = useState<string[]>([])
   const [cities, setCities] = useState<string[]>([])
@@ -14,19 +15,6 @@ export default function AIRecommendPage() {
   const [loading, setLoading] = useState(false)
   const [recommendations, setRecommendations] = useState<any[]>([])
   const [submitted, setSubmitted] = useState(false)
-
-  if (!user || user.role === 'guest') {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Vui lòng đăng nhập để sử dụng tính năng này</p>
-          <a href="/login" className="text-blue-600 hover:underline">
-            Đăng nhập
-          </a>
-        </div>
-      </div>
-    )
-  }
 
   const handlePropertyTypeChange = (type: string) => {
     setPropertyTypes((prev) =>
@@ -55,10 +43,10 @@ export default function AIRecommendPage() {
       }
 
       // Submit preferences
-      recommendationService.submitPreferences(user.id, preferences)
+      recommendationService.submitPreferences(previewUserId, preferences)
 
       // Get recommendations
-      const recs = recommendationService.getRecommendations(user.id, 10)
+      const recs = recommendationService.getRecommendations(previewUserId, 10)
       setRecommendations(recs)
       setSubmitted(true)
     } catch (error) {
@@ -71,7 +59,14 @@ export default function AIRecommendPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">🤖 Khuyến nghị AI</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-3">
+          <h1 className="text-3xl font-bold text-gray-900">🤖 Khuyến nghị AI</h1>
+          {!user && (
+            <div className="text-sm text-gray-500">
+              Chế độ xem khách · <a href="/login" className="text-blue-600 hover:underline">Đăng nhập</a> để lưu hồ sơ
+            </div>
+          )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Preferences Form */}

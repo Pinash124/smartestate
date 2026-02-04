@@ -65,8 +65,11 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
             <Link to="/listings" className="text-gray-600 hover:text-amber-600 font-medium transition">
               Tin đăng
             </Link>
-            <Link to="/user/ai-recommend" className="text-gray-600 hover:text-amber-600 font-medium transition">
+            <Link to="/recommend" className="text-gray-600 hover:text-amber-600 font-medium transition">
               AI Recommend
+            </Link>
+            <Link to="/favorite" className="text-gray-600 hover:text-amber-600 font-medium transition">
+              Tin đã lưu
             </Link>
           </>
         )
@@ -75,6 +78,9 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
           <>
             <Link to="/listings" className="text-gray-600 hover:text-amber-600 font-medium transition">
               Tin đăng
+            </Link>
+            <Link to="/favorite" className="text-gray-600 hover:text-amber-600 font-medium transition">
+              Tin đã lưu
             </Link>
           </>
         )
@@ -106,7 +112,7 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
             {isAuthenticated && user ? (
               <div className="flex items-center space-x-4">
                 <Link
-                  to="/user/profile"
+                  to="/profile"
                   className="text-gray-600 hover:text-amber-600 font-medium transition"
                   title="Hồ sơ cá nhân"
                 >

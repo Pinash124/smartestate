@@ -15,6 +15,7 @@ export default function ListingDetailPage() {
   const [reportNote, setReportNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [isFavorite, setIsFavorite] = useState(false)
 
   const currentUser = authService.getCurrentUser()
   const isAuthenticated = authService.isAuthenticated()
@@ -25,12 +26,21 @@ export default function ListingDetailPage() {
       const found = listingService.getListing(listingId)
       if (found) {
         setListing(found)
+        if (currentUser) {
+          setIsFavorite(listingService.isFavorite(found.id, currentUser.id))
+        }
       } else {
         setError('Không tìm thấy tin đăng')
       }
       setLoading(false)
     }
   }, [id])
+
+  useEffect(() => {
+    if (listing && currentUser) {
+      setIsFavorite(listingService.isFavorite(listing.id, currentUser.id))
+    }
+  }, [listing, currentUser])
 
   const handleRevealPhone = () => {
     if (!isAuthenticated) {
@@ -68,6 +78,16 @@ export default function ListingDetailPage() {
       const conversation = chatService.createConversation(currentUser.id, otherUserId, listing.id)
       navigate('/messages/' + conversation.id)
     }
+  }
+
+  const handleToggleFavorite = () => {
+    if (!listing) return
+    if (!currentUser) {
+      navigate('/login')
+      return
+    }
+    const next = listingService.toggleFavorite(listing.id, currentUser.id)
+    setIsFavorite(next)
   }
 
   if (loading) {
@@ -139,7 +159,19 @@ export default function ListingDetailPage() {
           {/* Info */}
           <div className="space-y-4">
             <div className="bg-white rounded-lg shadow-lg p-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{listing.title}</h1>
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <h1 className="text-2xl font-bold text-gray-900">{listing.title}</h1>
+                <button
+                  onClick={handleToggleFavorite}
+                  className={`px-3 py-1 rounded-full text-sm font-medium border transition ${
+                    isFavorite
+                      ? 'bg-amber-500 border-amber-500 text-white'
+                      : 'bg-white border-gray-200 text-gray-600 hover:border-amber-400 hover:text-amber-500'
+                  }`}
+                >
+                  {isFavorite ? 'Đã lưu' : 'Lưu tin'}
+                </button>
+              </div>
               <p className="text-3xl font-bold text-blue-600 mb-4">{listing.price}</p>
 
               <div className="space-y-2 text-gray-700 mb-6">

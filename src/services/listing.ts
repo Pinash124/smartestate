@@ -26,6 +26,8 @@ export const PAYMENT_TYPE: Record<string, PaymentType> = {
   TAKEOVER_FEE: 'takeover_fee',
 };
 
+const FAVORITE_KEY = 'favoriteListings';
+
 // AI Moderation Service
 export class AIModerationService {
   private readonly FORBIDDEN_WORDS = ['fake', 'spam', 'scam', 'cheat'];
@@ -143,6 +145,14 @@ export class PaymentService {
 export class ListingService {
   private moderationService = new AIModerationService();
   private paymentService = new PaymentService();
+
+  private getFavoriteMap(): Record<string, number[]> {
+    return JSON.parse(localStorage.getItem(FAVORITE_KEY) || '{}') as Record<string, number[]>;
+  }
+
+  private saveFavoriteMap(map: Record<string, number[]>): void {
+    localStorage.setItem(FAVORITE_KEY, JSON.stringify(map));
+  }
 
   createListing(listing: Omit<Listing, 'id' | 'status' | 'moderation'>): Listing {
     const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
@@ -307,6 +317,48 @@ export class ListingService {
   getApprovedListings(): Listing[] {
     const listings = this.getAllListings();
     return listings.filter((l) => l.status === LISTING_STATUS.APPROVED || l.status === LISTING_STATUS.ACTIVE);
+  }
+
+  getFavoriteIds(userId: number): number[] {
+    const map = this.getFavoriteMap();
+    return map[String(userId)] || [];
+  }
+
+  isFavorite(listingId: number, userId: number): boolean {
+    return this.getFavoriteIds(userId).includes(listingId);
+  }
+
+  addFavorite(listingId: number, userId: number): boolean {
+    const map = this.getFavoriteMap();
+    const key = String(userId);
+    const list = map[key] || [];
+    if (list.includes(listingId)) return true;
+    map[key] = [...list, listingId];
+    this.saveFavoriteMap(map);
+    return true;
+  }
+
+  removeFavorite(listingId: number, userId: number): boolean {
+    const map = this.getFavoriteMap();
+    const key = String(userId);
+    const list = map[key] || [];
+    map[key] = list.filter((id) => id !== listingId);
+    this.saveFavoriteMap(map);
+    return true;
+  }
+
+  toggleFavorite(listingId: number, userId: number): boolean {
+    if (this.isFavorite(listingId, userId)) {
+      this.removeFavorite(listingId, userId);
+      return false;
+    }
+    this.addFavorite(listingId, userId);
+    return true;
+  }
+
+  getFavoriteListings(userId: number): Listing[] {
+    const favoriteIds = new Set(this.getFavoriteIds(userId));
+    return this.getAllListings().filter((listing) => favoriteIds.has(listing.id));
   }
 }
 
