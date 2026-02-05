@@ -33,7 +33,7 @@ export default function EditListingPage() {
   useEffect(() => {
     if (!id || !user) return
 
-    const found = listingService.getListing(parseInt(id))
+    const found = listingService.getListing(id)
 
     if (found && (found.sellerId === user.id || found.responsibleBrokerId === user.id)) {
       setListing(found)

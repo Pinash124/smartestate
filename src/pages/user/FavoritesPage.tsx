@@ -19,7 +19,7 @@ export default function FavoritesPage() {
     setLoading(false)
   }, [user])
 
-  const handleRemove = (listingId: number) => {
+  const handleRemove = (listingId: string) => {
     if (!user) return
     listingService.removeFavorite(listingId, user.id)
     setFavorites(listingService.getFavoriteListings(user.id))

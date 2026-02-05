@@ -8,7 +8,7 @@ export interface UserProfile {
 }
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   password: string;
@@ -45,12 +45,13 @@ export interface ModerationResult {
   riskScore: number;
   flags: string[];
   suggestions: string[];
-  reviewedBy?: number;
+  reviewedBy?: string;
   reviewedAt?: Date;
 }
 
 export interface BrokerRequest {
-  brokerId: number;
+  brokerId: string;
+  brokerName?: string;
   status: 'pending' | 'accepted' | 'rejected';
   requestedAt: Date;
   respondedAt?: Date;
@@ -58,18 +59,21 @@ export interface BrokerRequest {
 }
 
 export interface ListingReport {
-  userId: number;
+  userId: string;
   reason: string;
   note: string;
   reportedAt: Date;
 }
 
 export interface Listing {
-  id: number;
-  sellerId: number;
+  id: string;
+  sellerId: string;
   sellerName: string;
   sellerPhone: string;
-  responsibleBrokerId?: number;
+  responsibleId?: string;
+  isBrokerManaged?: boolean;
+  takeoverFeeStatus?: 'unpaid' | 'paid';
+  responsibleBrokerId?: string;
   title: string;
   type: PropertyType;
   transaction: TransactionType;
@@ -87,6 +91,7 @@ export interface Listing {
   brokerRequests?: BrokerRequest[];
   reports?: ListingReport[];
   createdAt: Date;
+  updatedAt?: Date;
   approvedAt?: Date;
   completedAt?: Date;
 }
@@ -98,9 +103,9 @@ export interface Payment {
   id: number;
   type: PaymentType;
   amount: number;
-  listingId: number;
-  userId?: number;
-  brokerId?: number;
+  listingId: string;
+  userId?: string;
+  brokerId?: string;
   status: 'PAID' | 'PENDING' | 'FAILED';
   date: Date;
   description: string;
@@ -130,7 +135,7 @@ export interface RecommendedListing {
 export interface ChatMessage {
   id: number;
   conversationId: number;
-  senderId: number;
+  senderId: string;
   senderName: string;
   content: string;
   createdAt: Date;
@@ -139,9 +144,60 @@ export interface ChatMessage {
 
 export interface Conversation {
   id: number;
-  participants: number[];
-  listingId: number;
+  participants: string[];
+  listingId: string;
   lastMessage?: ChatMessage;
   lastMessageAt?: Date;
   createdAt: Date;
+}
+
+export type ApiUserRole = 'Admin' | 'Seller' | 'Broker' | 'User';
+
+export interface ApiAuthLoginResponse {
+  userId: string;
+  email: string;
+  role: ApiUserRole;
+  token: string;
+}
+
+export interface ApiAuthRegisterRequest {
+  email: string;
+  password: string;
+  displayName: string;
+}
+
+export interface ApiAddress {
+  city: string;
+  district: string;
+  street: string;
+}
+
+export interface ApiListingImage {
+  url: string;
+  caption?: string;
+}
+
+export interface ApiListingDetail {
+  id: string;
+  title: string;
+  description?: string;
+  priceAmount: number;
+  priceCurrency: string;
+  maskedPhone?: string;
+  images?: ApiListingImage[];
+  responsibleUserId?: string;
+}
+
+export interface ApiListingContactResponse {
+  phone: string;
+}
+
+export interface ApiCreateListingRequest {
+  title: string;
+  description: string;
+  propertyType: number;
+  priceAmount: number;
+  priceCurrency: string;
+  areaM2: number;
+  address: ApiAddress;
 }

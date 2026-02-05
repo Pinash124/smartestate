@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../../services/auth'
 import { listingService } from '../../services/listing'
-import { Listing } from '../../types'
+import { ApiCreateListingRequest } from '../../types'
 
 export default function CreateListingPage() {
   const navigate = useNavigate()
@@ -77,46 +77,33 @@ export default function CreateListingPage() {
       return
     }
 
-    if (formData.images.length === 0) {
-      setSubmitError('Vui lòng thêm ít nhất 1 ảnh')
-      return
-    }
-
     setLoading(true)
 
     try {
-      const newListing: Listing = {
-        id: Date.now(),
-        sellerId: user.id,
-        sellerName: user.name,
-        sellerPhone: user.profile.phone || '',
+      const propertyTypeMap: Record<string, number> = {
+        apartment: 1,
+        house: 2,
+        land: 3,
+        office: 0,
+      }
+      const priceAmount = Number(formData.price.replace(/[^\d]/g, ''))
+      const payload: ApiCreateListingRequest = {
         title: formData.title,
-        type: formData.type,
-        transaction: formData.transaction,
-        price: formData.price,
-        area: parseFloat(formData.area),
-        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : undefined,
-        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : undefined,
-        city: formData.city,
-        district: formData.district,
-        address: formData.address,
         description: formData.description,
-        images: formData.images,
-        status: 'pending_moderation',
-        moderation: {
-          status: 'pending',
-          decision: 'APPROVED',
-          riskScore: 0,
-          flags: [],
-          suggestions: [],
+        propertyType: propertyTypeMap[formData.type] ?? 0,
+        priceAmount,
+        priceCurrency: 'VND',
+        areaM2: Number(formData.area),
+        address: {
+          city: formData.city,
+          district: formData.district,
+          street: formData.address,
         },
-        createdAt: new Date(),
       }
 
-      listingService.createListing(newListing)
-
+      const created = await listingService.createListingRemote(payload)
       alert('Tạo tin đăng thành công!')
-      navigate('/seller/my-listings')
+      navigate('/listing/' + created.id)
     } catch {
       setSubmitError('Có lỗi xảy ra khi tạo tin đăng')
     } finally {

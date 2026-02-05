@@ -16,7 +16,7 @@ export default function SignupPage({ setIsAuthenticated }: SignupPageProps) {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -35,10 +35,13 @@ export default function SignupPage({ setIsAuthenticated }: SignupPageProps) {
       return
     }
 
-    if (authService.register(name, email, password, role)) {
-      setIsAuthenticated(true)
-      navigate('/')
-    } else {
+    try {
+      const ok = await authService.register(name, email, password, role)
+      if (ok) {
+        setIsAuthenticated(true)
+        navigate('/')
+      }
+    } catch {
       setError('Email này đã được sử dụng')
     }
   }

@@ -1,11 +1,11 @@
 import { listingService } from './listing';
-import { User, Listing, BrokerRequest } from '@/types';
+import { User, BrokerRequest } from '@/types';
 
 export const brokerService = {
   /**
    * 1. SELLER: Gửi yêu cầu ủy quyền cho một Broker cụ thể
    */
-  sendTakeoverRequest: (listingId: number, broker: User) => {
+  sendTakeoverRequest: (listingId: string, broker: User) => {
     const listings = listingService.getAllListings();
     const idx = listings.findIndex(l => l.id === listingId);
     
@@ -36,7 +36,7 @@ export const brokerService = {
   /**
    * 2. BROKER: Chấp nhận hoặc Từ chối yêu cầu quản lý
    */
-  respondToRequest: (listingId: number, brokerId: number, status: 'accepted' | 'rejected') => {
+  respondToRequest: (listingId: string, brokerId: string, status: 'accepted' | 'rejected') => {
     const listings = listingService.getAllListings();
     const listing = listings.find(l => l.id === listingId);
     
@@ -61,7 +61,7 @@ export const brokerService = {
   /**
    * 3. HỆ THỐNG: Xác nhận đã đóng phí (Takeover Fee) và chính thức bàn giao quyền quản lý
    */
-  confirmPaymentAndTransfer: (listingId: number, brokerId: number) => {
+  confirmPaymentAndTransfer: (listingId: string, brokerId: string) => {
     const listings = listingService.getAllListings();
     const idx = listings.findIndex(l => l.id === listingId);
     
@@ -92,7 +92,7 @@ export const brokerService = {
   /**
    * 4. SELLER: Thu hồi quyền quản lý từ Broker (Unassign)
    */
-  unassignBroker: (listingId: number) => {
+  unassignBroker: (listingId: string) => {
     const listings = listingService.getAllListings();
     const idx = listings.findIndex(l => l.id === listingId);
     

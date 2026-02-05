@@ -10,6 +10,7 @@ export default function ListingDetailPage() {
   const navigate = useNavigate()
   const [listing, setListing] = useState<Listing | null>(null)
   const [showPhone, setShowPhone] = useState(false)
+  const [phone, setPhone] = useState('')
   const [showReportForm, setShowReportForm] = useState(false)
   const [reportReason, setReportReason] = useState('')
   const [reportNote, setReportNote] = useState('')
@@ -21,20 +22,30 @@ export default function ListingDetailPage() {
   const isAuthenticated = authService.isAuthenticated()
 
   useEffect(() => {
-    if (id) {
-      const listingId = parseInt(id)
-      const found = listingService.getListing(listingId)
-      if (found) {
-        setListing(found)
-        if (currentUser) {
-          setIsFavorite(listingService.isFavorite(found.id, currentUser.id))
+    const loadListing = async () => {
+      if (!id) return
+      setLoading(true)
+      setError('')
+      try {
+        const found = await listingService.fetchListing(id)
+        if (found) {
+          setListing(found)
+          setPhone(found.sellerPhone)
+          if (currentUser) {
+            setIsFavorite(listingService.isFavorite(found.id, currentUser.id))
+          }
+        } else {
+          setError('Không tìm thấy tin đăng')
         }
-      } else {
-        setError('Không tìm thấy tin đăng')
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Không tìm thấy tin đăng'
+        setError(message)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
-  }, [id])
+    void loadListing()
+  }, [id, currentUser])
 
   useEffect(() => {
     if (listing && currentUser) {
@@ -42,12 +53,19 @@ export default function ListingDetailPage() {
     }
   }, [listing, currentUser])
 
-  const handleRevealPhone = () => {
+  const handleRevealPhone = async () => {
     if (!isAuthenticated) {
       navigate('/login')
       return
     }
-    setShowPhone(true)
+    if (!listing) return
+    try {
+      const realPhone = await listingService.revealPhone(listing.id)
+      setPhone(realPhone)
+      setShowPhone(true)
+    } catch {
+      alert('Không thể lấy số điện thoại')
+    }
   }
 
   const handleReportListing = () => {
@@ -107,7 +125,7 @@ export default function ListingDetailPage() {
   }
 
   // Check if user can view this listing (guest sees only APPROVED + ACTIVE)
-  if (!isAuthenticated && (listing.status !== 'approved' || listing.moderation.decision !== 'APPROVED')) {
+  if (!isAuthenticated && (!['approved', 'active'].includes(listing.status) || listing.moderation.decision !== 'APPROVED')) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 flex items-center justify-center">
         <p className="text-red-600">Bạn không có quyền xem tin đăng này</p>
@@ -205,7 +223,7 @@ export default function ListingDetailPage() {
                   onClick={handleRevealPhone}
                   className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
                 >
-                  {showPhone ? `📞 ${listing.sellerPhone}` : 'Xem số điện thoại'}
+                  {showPhone ? `📞 ${phone || listing.sellerPhone}` : 'Xem số điện thoại'}
                 </button>
 
                 <button

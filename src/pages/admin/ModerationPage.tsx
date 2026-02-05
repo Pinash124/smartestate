@@ -9,7 +9,6 @@ export default function ModerationPage() {
   
   const [listings, setListings] = useState<Listing[]>([])
   const [filter, setFilter] = useState<'all' | 'need_review' | 'approved' | 'rejected'>('need_review')
-  const [loading, setLoading] = useState(true)
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null)
   const [rejectReason, setRejectReason] = useState('')
 
@@ -27,23 +26,22 @@ export default function ModerationPage() {
     }
 
     setListings(filtered)
-    setLoading(false)
   }
 
   useEffect(() => {
     fetchData()
   }, [filter])
 
-  const handleApprove = (id: number) => {
-    listingService.approveListing(id, user?.id || 0)
+  const handleApprove = (id: string) => {
+    listingService.approveListing(id, user?.id || '')
     alert('Đã phê duyệt tin đăng!')
     fetchData()
     setSelectedListing(null)
   }
 
-  const handleReject = (id: number) => {
+  const handleReject = (id: string) => {
     if (!rejectReason) return alert('Vui lòng nhập lý do từ chối')
-    listingService.rejectListing(id, user?.id || 0)
+    listingService.rejectListing(id, user?.id || '')
     alert('Đã từ chối tin đăng')
     fetchData()
     setSelectedListing(null)

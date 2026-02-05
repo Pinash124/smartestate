@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { authService } from '@/services/auth' // Sử dụng @/ để tránh lỗi đường dẫn
 import { User } from '@/types' // Sử dụng @/ để tránh lỗi đường dẫn
 
 export default function UserManagementPage() {

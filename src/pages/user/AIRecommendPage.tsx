@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { authService } from '../../services/auth'
 import { recommendationService } from '../../services/recommendation'
-import { Listing } from '../../types'
-
+import { Listing, PropertyType } from '../../types'
 export default function AIRecommendPage() {
   const user = authService.getCurrentUser()
-  const previewUserId = user?.id ?? 0
+  const previewUserId = user?.id ?? 'guest'
   const [transaction, setTransaction] = useState('buy')
   const [propertyTypes, setPropertyTypes] = useState<string[]>([])
   const [cities, setCities] = useState<string[]>([])
@@ -35,7 +34,7 @@ export default function AIRecommendPage() {
     try {
       const preferences = {
         transaction: transaction as any,
-        propertyTypes: propertyTypes.length > 0 ? propertyTypes : undefined,
+        propertyTypes: propertyTypes.length > 0 ? (propertyTypes as PropertyType[]) : undefined,
         cities: cities.length > 0 ? cities : undefined,
         priceRange: priceRange || undefined,
         minArea: minArea ? parseInt(minArea) : undefined,
@@ -218,7 +217,7 @@ export default function AIRecommendPage() {
                   </button>
                 </div>
 
-                {recommendations.map((rec, idx) => {
+                {recommendations.map((rec) => {
                   const listing = rec.listing as Listing
                   return (
                     <div

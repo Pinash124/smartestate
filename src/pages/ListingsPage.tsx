@@ -21,22 +21,29 @@ export default function ListingsPage() {
 
   const isAuthenticated = authService.isAuthenticated()
   const user = authService.getCurrentUser()
-  const [favoriteIds, setFavoriteIds] = useState<number[]>([])
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([])
 
   useEffect(() => {
-    // Get all listings and filter by status (APPROVED + ACTIVE for guests)
-    const allListings = listingService.getAllListings()
-    const filtered = allListings.filter((l) => {
-      if (!isAuthenticated) {
-        // Guest sees only APPROVED + ACTIVE
-        return l.status === 'active' && l.moderation.decision === 'APPROVED'
+    const loadListings = async () => {
+      setLoading(true)
+      try {
+        const allListings = await listingService.fetchListings()
+        const filtered = allListings.filter((l) => {
+          if (!isAuthenticated) {
+            return l.status === 'active' && l.moderation.decision === 'APPROVED'
+          }
+          return l.moderation.decision === 'APPROVED'
+        })
+        setListings(filtered)
+        setFilteredListings(filtered)
+      } catch {
+        setListings([])
+        setFilteredListings([])
+      } finally {
+        setLoading(false)
       }
-      // Authenticated users see APPROVED listings
-      return l.moderation.decision === 'APPROVED'
-    })
-    setListings(filtered)
-    setFilteredListings(filtered)
-    setLoading(false)
+    }
+    void loadListings()
   }, [isAuthenticated])
 
   useEffect(() => {
@@ -102,7 +109,7 @@ export default function ListingsPage() {
     )
   }
 
-  const handleToggleFavorite = (listingId: number) => {
+  const handleToggleFavorite = (listingId: string) => {
     if (!user) {
       navigate('/login')
       return

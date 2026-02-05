@@ -1,4 +1,5 @@
-import { User, UserRole } from '@/types';
+import { ApiAuthLoginResponse, ApiAuthRegisterRequest, ApiUserRole, User, UserRole } from '@/types';
+import { apiRequest, setToken } from './api';
 
 const PERMISSIONS: Record<UserRole, string[]> = {
   guest: ['browse_listings', 'register', 'login'],
@@ -49,37 +50,29 @@ export class AuthService {
     }
   }
 
-  hashPassword(password: string): string {
-    // Simple hash for MVP (use bcrypt in production)
-    return btoa(password);
+  private normalizeRole(role: ApiUserRole | UserRole): UserRole {
+    const normalized = role.toString().toLowerCase();
+    if (normalized === 'admin') return 'admin';
+    if (normalized === 'seller') return 'seller';
+    if (normalized === 'broker') return 'broker';
+    return 'user';
   }
 
-  login(email: string, password: string): boolean {
-    const users = JSON.parse(localStorage.getItem('users') || '[]') as User[];
-    const user = users.find(
-      (u) => u.email === email && u.password === this.hashPassword(password)
-    );
+  async login(email: string, password: string): Promise<boolean> {
+    const data = await apiRequest<ApiAuthLoginResponse>('/api/auth/login', {
+      method: 'POST',
+      body: { email, password },
+    });
 
-    if (user) {
-      this.currentUser = user;
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      return true;
-    }
-    return false;
-  }
+    setToken(data.token);
 
-  register(name: string, email: string, password: string, role: UserRole): boolean {
-    const users = JSON.parse(localStorage.getItem('users') || '[]') as User[];
-
-    if (users.some((u) => u.email === email)) {
-      return false;
-    }
-
-    const newUser: User = {
-      id: users.length + 1,
+    const name = data.email.split('@')[0] || data.email;
+    const role = this.normalizeRole(data.role);
+    const user: User = {
+      id: data.userId,
       name,
-      email,
-      password: this.hashPassword(password),
+      email: data.email,
+      password: '',
       role,
       profile: {
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
@@ -88,21 +81,33 @@ export class AuthService {
       updatedAt: new Date(),
     };
 
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-
-    this.currentUser = newUser;
-    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    this.currentUser = user;
+    localStorage.setItem('currentUser', JSON.stringify(user));
     return true;
+  }
+
+  async register(name: string, email: string, password: string, role: UserRole): Promise<boolean> {
+    void role;
+    const payload: ApiAuthRegisterRequest = {
+      email,
+      password,
+      displayName: name,
+    };
+    await apiRequest<void>('/api/auth/register', {
+      method: 'POST',
+      body: payload,
+    });
+    return this.login(email, password);
   }
 
   logout(): void {
     this.currentUser = null;
     localStorage.removeItem('currentUser');
+    setToken(null);
   }
 
   isAuthenticated(): boolean {
-    return this.currentUser !== null;
+    return this.currentUser !== null && !!localStorage.getItem('authToken');
   }
 
   getCurrentUser(): User | null {
@@ -124,16 +129,7 @@ export class AuthService {
 
   updateProfile(updates: Partial<User>): boolean {
     if (!this.currentUser) return false;
-
-    const users = JSON.parse(localStorage.getItem('users') || '[]') as User[];
-    const index = users.findIndex((u) => u.id === this.currentUser!.id);
-
-    if (index === -1) return false;
-
-    users[index] = { ...users[index], ...updates, updatedAt: new Date() };
-    this.currentUser = users[index];
-
-    localStorage.setItem('users', JSON.stringify(users));
+    this.currentUser = { ...this.currentUser, ...updates, updatedAt: new Date() };
     localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
     return true;
   }

@@ -2,13 +2,13 @@ import { Listing, RecommendedListing, RecommendationReason, UserPreferences } fr
 import { listingService } from './listing';
 
 export class AIRecommendationService {
-  submitPreferences(userId: number, preferences: UserPreferences): void {
+  submitPreferences(userId: string, preferences: UserPreferences): void {
     const userPreferences = JSON.parse(localStorage.getItem('userPreferences') || '{}');
     userPreferences[userId] = preferences;
     localStorage.setItem('userPreferences', JSON.stringify(userPreferences));
   }
 
-  getRecommendations(userId: number, topN: number = 10): RecommendedListing[] {
+  getRecommendations(userId: string, topN: number = 10): RecommendedListing[] {
     const userPreferences = JSON.parse(localStorage.getItem('userPreferences') || '{}');
     const preferences = userPreferences[userId] as UserPreferences | undefined;
 

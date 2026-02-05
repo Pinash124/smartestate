@@ -1,4 +1,15 @@
-import { Listing, ListingStatus, ModerationStatus, ModerationResult, Payment, PaymentType } from '@/types';
+import {
+  ApiCreateListingRequest,
+  ApiListingContactResponse,
+  ApiListingDetail,
+  Listing,
+  ListingStatus,
+  ModerationStatus,
+  ModerationResult,
+  Payment,
+  PaymentType,
+} from '@/types';
+import { API_BASE_URL, apiRequest } from './api';
 
 export const LISTING_STATUS: Record<string, ListingStatus> = {
   DRAFT: 'draft',
@@ -146,11 +157,83 @@ export class ListingService {
   private moderationService = new AIModerationService();
   private paymentService = new PaymentService();
 
-  private getFavoriteMap(): Record<string, number[]> {
-    return JSON.parse(localStorage.getItem(FAVORITE_KEY) || '{}') as Record<string, number[]>;
+  private resolveImageUrl(url: string): string {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    const normalized = url.startsWith('/') ? url : `/${url}`;
+    return `${API_BASE_URL}${normalized}`;
   }
 
-  private saveFavoriteMap(map: Record<string, number[]>): void {
+  private formatPrice(amount: number, currency: string): string {
+    const formatted = new Intl.NumberFormat('vi-VN').format(amount);
+    return `${formatted} ${currency}`;
+  }
+
+  private mapApiListing(listing: ApiListingDetail): Listing {
+    const name = listing.responsibleUserId ? `User ${listing.responsibleUserId.slice(0, 6)}` : 'Người đăng';
+    return {
+      id: listing.id,
+      sellerId: listing.responsibleUserId || '',
+      sellerName: name,
+      sellerPhone: listing.maskedPhone || '',
+      responsibleBrokerId: listing.responsibleUserId,
+      title: listing.title,
+      type: 'apartment',
+      transaction: 'buy',
+      price: this.formatPrice(listing.priceAmount, listing.priceCurrency || 'VND'),
+      area: 0,
+      bedrooms: undefined,
+      bathrooms: undefined,
+      city: '',
+      district: '',
+      address: '',
+      description: listing.description || '',
+      images: (listing.images || []).map((img) => this.resolveImageUrl(img.url)),
+      status: LISTING_STATUS.ACTIVE,
+      moderation: {
+        status: MODERATION_STATUS.AUTO_APPROVED,
+        decision: 'APPROVED',
+        riskScore: 0,
+        flags: [],
+        suggestions: [],
+        reviewedAt: new Date(),
+      },
+      createdAt: new Date(),
+    };
+  }
+
+  async fetchListing(id: string): Promise<Listing | null> {
+    const data = await apiRequest<ApiListingDetail>(`/api/listings/${id}`);
+    return this.mapApiListing(data);
+  }
+
+  async fetchListings(): Promise<Listing[]> {
+    const data = await apiRequest<ApiListingDetail[]>(`/api/search/listings`);
+    return data.map((item) => this.mapApiListing(item));
+  }
+
+  async revealPhone(id: string): Promise<string> {
+    const data = await apiRequest<ApiListingContactResponse>(`/api/listings/${id}/contact`, {
+      method: 'POST',
+      auth: true,
+    });
+    return data.phone;
+  }
+
+  async createListingRemote(payload: ApiCreateListingRequest): Promise<Listing> {
+    const data = await apiRequest<ApiListingDetail>('/api/listings', {
+      method: 'POST',
+      body: payload,
+      auth: true,
+    });
+    return this.mapApiListing(data);
+  }
+
+  private getFavoriteMap(): Record<string, string[]> {
+    return JSON.parse(localStorage.getItem(FAVORITE_KEY) || '{}') as Record<string, string[]>;
+  }
+
+  private saveFavoriteMap(map: Record<string, string[]>): void {
     localStorage.setItem(FAVORITE_KEY, JSON.stringify(map));
   }
 
@@ -159,7 +242,7 @@ export class ListingService {
 
     const newListing: Listing = {
       ...listing,
-      id: listings.length + 1,
+      id: String(Date.now()),
       status: LISTING_STATUS.PENDING_MODERATION,
       createdAt: new Date(),
     } as Listing;
@@ -192,7 +275,7 @@ export class ListingService {
     return newListing;
   }
 
-  approveListing(listingId: number, adminId: number): boolean {
+  approveListing(listingId: string, adminId: string): boolean {
     const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
     const listing = listings.find((l) => l.id === listingId);
 
@@ -209,7 +292,7 @@ export class ListingService {
     return true;
   }
 
-  rejectListing(listingId: number, adminId: number): boolean {
+  rejectListing(listingId: string, adminId: string): boolean {
     const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
     const listing = listings.find((l) => l.id === listingId);
 
@@ -226,8 +309,8 @@ export class ListingService {
   }
 
   reportListing(
-    listingId: number,
-    userId: number,
+    listingId: string,
+    userId: string,
     reason: string,
     note: string
   ): boolean {
@@ -248,7 +331,7 @@ export class ListingService {
     return true;
   }
 
-  requestBrokerTakeover(listingId: number, brokerId: number, sellerName: string): boolean {
+  requestBrokerTakeover(listingId: string, brokerId: string, sellerName: string): boolean {
     const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
     const listing = listings.find((l) => l.id === listingId);
 
@@ -266,7 +349,7 @@ export class ListingService {
     return true;
   }
 
-  acceptBrokerTakeover(listingId: number, brokerId: number): boolean {
+  acceptBrokerTakeover(listingId: string, brokerId: string): boolean {
     const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
     const listing = listings.find((l) => l.id === listingId);
 
@@ -294,7 +377,7 @@ export class ListingService {
     return true;
   }
 
-  unassignBroker(listingId: number, brokerId: number): boolean {
+  unassignBroker(listingId: string, brokerId: string): boolean {
     const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
     const listing = listings.find((l) => l.id === listingId);
 
@@ -305,7 +388,16 @@ export class ListingService {
     return true;
   }
 
-  getListing(id: number): Listing | null {
+  updateListing(listing: Listing): boolean {
+    const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
+    const index = listings.findIndex((l) => l.id === listing.id);
+    if (index === -1) return false;
+    listings[index] = listing;
+    localStorage.setItem('listings', JSON.stringify(listings));
+    return true;
+  }
+
+  getListing(id: string): Listing | null {
     const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
     return listings.find((l) => l.id === id) || null;
   }
@@ -319,16 +411,16 @@ export class ListingService {
     return listings.filter((l) => l.status === LISTING_STATUS.APPROVED || l.status === LISTING_STATUS.ACTIVE);
   }
 
-  getFavoriteIds(userId: number): number[] {
+  getFavoriteIds(userId: string): string[] {
     const map = this.getFavoriteMap();
     return map[String(userId)] || [];
   }
 
-  isFavorite(listingId: number, userId: number): boolean {
+  isFavorite(listingId: string, userId: string): boolean {
     return this.getFavoriteIds(userId).includes(listingId);
   }
 
-  addFavorite(listingId: number, userId: number): boolean {
+  addFavorite(listingId: string, userId: string): boolean {
     const map = this.getFavoriteMap();
     const key = String(userId);
     const list = map[key] || [];
@@ -338,7 +430,7 @@ export class ListingService {
     return true;
   }
 
-  removeFavorite(listingId: number, userId: number): boolean {
+  removeFavorite(listingId: string, userId: string): boolean {
     const map = this.getFavoriteMap();
     const key = String(userId);
     const list = map[key] || [];
@@ -347,7 +439,7 @@ export class ListingService {
     return true;
   }
 
-  toggleFavorite(listingId: number, userId: number): boolean {
+  toggleFavorite(listingId: string, userId: string): boolean {
     if (this.isFavorite(listingId, userId)) {
       this.removeFavorite(listingId, userId);
       return false;
@@ -356,7 +448,7 @@ export class ListingService {
     return true;
   }
 
-  getFavoriteListings(userId: number): Listing[] {
+  getFavoriteListings(userId: string): Listing[] {
     const favoriteIds = new Set(this.getFavoriteIds(userId));
     return this.getAllListings().filter((listing) => favoriteIds.has(listing.id));
   }

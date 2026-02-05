@@ -3,7 +3,7 @@ import { authService } from '../services/auth'
 import { User } from '../types'
 
 const previewUser: User = {
-  id: 0,
+  id: 'guest',
   name: 'Khách dùng thử',
   email: 'guest@smartestate.vn',
   password: '',

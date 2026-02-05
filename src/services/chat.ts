@@ -21,9 +21,9 @@ class ChatService {
   }
 
   createConversation(
-    participant1Id: number,
-    participant2Id: number,
-    listingId: number
+    participant1Id: string,
+    participant2Id: string,
+    listingId: string
   ): Conversation {
     const existingConv = this.conversations.find(
       (c) =>
@@ -50,7 +50,7 @@ class ChatService {
     return this.conversations.find((c) => c.id === conversationId) || null
   }
 
-  getUserConversations(userId: number): Conversation[] {
+  getUserConversations(userId: string): Conversation[] {
     return this.conversations
       .filter((c) => c.participants.includes(userId))
       .sort((a, b) => (b.lastMessageAt?.getTime() || 0) - (a.lastMessageAt?.getTime() || 0))
@@ -58,7 +58,7 @@ class ChatService {
 
   sendMessage(
     conversationId: number,
-    senderId: number,
+    senderId: string,
     senderName: string,
     content: string
   ): ChatMessage {
@@ -98,8 +98,8 @@ class ChatService {
     }
   }
 
-  getUnreadCount(userId: number): number {
-    return this.messages.filter((m) => !m.readAt && m.id !== userId).length
+  getUnreadCount(userId: string): number {
+    return this.messages.filter((m) => !m.readAt && m.senderId !== userId).length
   }
 }
 

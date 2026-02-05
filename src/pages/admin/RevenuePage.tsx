@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { authService } from '@/services/auth'
 import { listingService } from '@/services/listing'
 import { Payment } from '@/types'
 
 export default function RevenuePage() {
-  const user = authService.getCurrentUser()
   const [payments, setPayments] = useState<Payment[]>([])
   const [filteredPayments, setFilteredPayments] = useState<Payment[]>([])
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [paymentType, setPaymentType] = useState<'all' | 'post_listing' | 'push_listing' | 'broker_fee' | 'takeover_fee'>('all')
-  const [loading, setLoading] = useState(true)
 
   // Vô hiệu hóa kiểm tra quyền để xem nhanh giao diện (Bật lại khi deploy)
   /*
@@ -31,8 +28,8 @@ export default function RevenuePage() {
   useEffect(() => {
     // Giả lập lấy dữ liệu thanh toán từ danh sách tin đăng đã duyệt
     const allPayments: Payment[] = listingService.getAllListings()
-      .flatMap((l) => l.moderation.reviewedAt ? [{
-        id: l.id,
+      .flatMap((l, index) => l.moderation.reviewedAt ? [{
+        id: index + 1,
         type: 'post_listing' as const,
         amount: 50000,
         listingId: l.id,
@@ -43,7 +40,6 @@ export default function RevenuePage() {
       }] : [])
 
     setPayments(allPayments)
-    setLoading(false)
   }, [])
 
   useEffect(() => {

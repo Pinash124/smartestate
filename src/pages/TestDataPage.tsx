@@ -8,7 +8,7 @@ export default function TestDataPage() {
     // 2. Định nghĩa danh sách 4 tài khoản mẫu
     const users: User[] = [
       {
-        id: 1,
+        id: '1',
         name: "Quản trị viên",
         email: "admin@smartestate.vn",
         password: btoa("admin123"), // Mã hóa Base64 để khớp với logic trong AuthService
@@ -18,7 +18,7 @@ export default function TestDataPage() {
         updatedAt: new Date()
       },
       {
-        id: 2,
+        id: '2',
         name: "Môi giới chuyên nghiệp",
         email: "broker@smartestate.vn",
         password: btoa("broker123"), 
@@ -28,7 +28,7 @@ export default function TestDataPage() {
         updatedAt: new Date()
       },
       {
-        id: 3,
+        id: '3',
         name: "Người bán nhà",
         email: "seller@smartestate.vn",
         password: btoa("seller123"),
@@ -38,7 +38,7 @@ export default function TestDataPage() {
         updatedAt: new Date()
       },
       {
-        id: 4,
+        id: '4',
         name: "Người mua tiềm năng",
         email: "user@smartestate.vn",
         password: btoa("user123"),

@@ -12,7 +12,7 @@ export default function LoginPage({ setIsAuthenticated }: LoginPageProps) {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
@@ -21,10 +21,13 @@ export default function LoginPage({ setIsAuthenticated }: LoginPageProps) {
       return
     }
 
-    if (authService.login(email, password)) {
-      setIsAuthenticated(true)
-      navigate('/')
-    } else {
+    try {
+      const ok = await authService.login(email, password)
+      if (ok) {
+        setIsAuthenticated(true)
+        navigate('/')
+      }
+    } catch {
       setError('Email hoặc mật khẩu không chính xác')
     }
   }
