@@ -9,7 +9,7 @@ import {
   Payment,
   PaymentType,
 } from '@/types';
-import { API_BASE_URL, apiRequest } from './api';
+import { API_BASE_URL, apiRequest, ApiError } from './api';
 
 export const LISTING_STATUS: Record<string, ListingStatus> = {
   DRAFT: 'draft',
@@ -203,30 +203,59 @@ export class ListingService {
   }
 
   async fetchListing(id: string): Promise<Listing | null> {
-    const data = await apiRequest<ApiListingDetail>(`/api/listings/${id}`);
-    return this.mapApiListing(data);
+    try {
+      const data = await apiRequest<ApiListingDetail>(`/api/listings/${id}`);
+      return this.mapApiListing(data);
+    } catch (error) {
+      console.error('Error fetching listing:', error);
+      if (error instanceof ApiError && error.status === 404) {
+        return null;
+      }
+      throw error;
+    }
   }
 
   async fetchListings(): Promise<Listing[]> {
-    const data = await apiRequest<ApiListingDetail[]>(`/api/search/listings`);
-    return data.map((item) => this.mapApiListing(item));
+    try {
+      const data = await apiRequest<ApiListingDetail[]>(`/api/search/listings`);
+      return Array.isArray(data) ? data.map((item) => this.mapApiListing(item)) : [];
+    } catch (error) {
+      console.error('Error fetching listings:', error);
+      return [];
+    }
   }
 
-  async revealPhone(id: string): Promise<string> {
-    const data = await apiRequest<ApiListingContactResponse>(`/api/listings/${id}/contact`, {
-      method: 'POST',
-      auth: true,
-    });
-    return data.phone;
+  async revealPhone(id: string): Promise<string | null> {
+    try {
+      const data = await apiRequest<ApiListingContactResponse>(`/api/listings/${id}/contact`, {
+        method: 'POST',
+        auth: true,
+      });
+      return data.phone || null;
+    } catch (error) {
+      console.error('Error revealing phone:', error);
+      if (error instanceof ApiError && error.status === 401) {
+        throw new Error('Bạn cần đăng nhập để xem số điện thoại');
+      }
+      throw error;
+    }
   }
 
-  async createListingRemote(payload: ApiCreateListingRequest): Promise<Listing> {
-    const data = await apiRequest<ApiListingDetail>('/api/listings', {
-      method: 'POST',
-      body: payload,
-      auth: true,
-    });
-    return this.mapApiListing(data);
+  async createListingRemote(payload: ApiCreateListingRequest): Promise<Listing | null> {
+    try {
+      const data = await apiRequest<ApiListingDetail>('/api/listings', {
+        method: 'POST',
+        body: payload,
+        auth: true,
+      });
+      return this.mapApiListing(data);
+    } catch (error) {
+      console.error('Error creating listing:', error);
+      if (error instanceof ApiError && error.status === 403) {
+        throw new Error('Bạn không có quyền tạo tin đăng');
+      }
+      throw error;
+    }
   }
 
   private getFavoriteMap(): Record<string, string[]> {

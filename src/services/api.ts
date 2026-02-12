@@ -19,12 +19,22 @@ export const setToken = (token: string | null): void => {
   localStorage.setItem('authToken', token)
 }
 
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public code: string,
+    message: string
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
   const { method = 'GET', body, auth = false, headers = {} } = options
-  const requestHeaders: Record<string, string> = { ...headers }
-
-  if (body !== undefined) {
-    requestHeaders['Content-Type'] = 'application/json'
+  const requestHeaders: Record<string, string> = {
+    ...headers,
+    'Content-Type': 'application/json',
   }
 
   if (auth) {
@@ -44,13 +54,20 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   const hasJson = contentType.includes('application/json')
 
   if (!response.ok) {
+    let errorMessage = 'Yêu cầu thất bại'
+    let errorCode = 'UNKNOWN_ERROR'
+
     if (hasJson) {
-      const errorBody = await response.json()
-      const message = errorBody?.message || errorBody?.title || 'Yêu cầu thất bại'
-      throw new Error(message)
+      try {
+        const errorBody = await response.json()
+        errorMessage = errorBody?.message || errorBody?.title || errorMessage
+        errorCode = errorBody?.code || errorCode
+      } catch {
+        // Ignore JSON parsing errors
+      }
     }
-    const text = await response.text()
-    throw new Error(text || 'Yêu cầu thất bại')
+
+    throw new ApiError(response.status, errorCode, errorMessage)
   }
 
   if (response.status === 204) {

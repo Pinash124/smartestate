@@ -36,13 +36,15 @@ export default function SignupPage({ setIsAuthenticated }: SignupPageProps) {
     }
 
     try {
-      const ok = await authService.register(name, email, password, role)
-      if (ok) {
+      const result = await authService.register(name, email, password, role)
+      if (result.success) {
         setIsAuthenticated(true)
         navigate('/')
+      } else {
+        setError(result.error?.message || 'Đăng ký thất bại')
       }
-    } catch {
-      setError('Email này đã được sử dụng')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi')
     }
   }
 

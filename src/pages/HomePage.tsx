@@ -4,6 +4,7 @@ import { authService } from '@/services/auth'
 export default function HomePage() {
   const location = useLocation()
   const user = authService.getCurrentUser()
+  const isAuthenticated = authService.isAuthenticated()
 
   const menuItems = [
     { name: 'Trang chủ', path: '/', icon: '🏠' },
@@ -24,6 +25,165 @@ export default function HomePage() {
     { label: 'Gợi ý phù hợp', path: '/recommend', color: 'bg-white text-blue-600 hover:bg-blue-50 border border-blue-100' },
   ]
 
+  // Guest layout - full width without sidebar
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20 px-4">
+          <div className="max-w-7xl mx-auto text-center">
+            <h1 className="text-5xl font-bold mb-4">Tìm Bất Động Sản Chỉ Trong Vài Phút</h1>
+            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">Hàng ngàn bất động sản chất lượng cao, được kiểm chứng. Tìm nhà mơ ước của bạn ngay hôm nay!</p>
+            <Link to="/listings" className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-bold text-lg hover:bg-blue-50 transition">
+              Khám Phá Ngay
+            </Link>
+          </div>
+        </div>
+
+        {/* Quick Search */}
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Tìm kiếm nhanh</h2>
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option>Mua bán</option>
+                <option>Cho thuê</option>
+              </select>
+              <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option>Căn hộ</option>
+                <option>Nhà riêng</option>
+                <option>Đất nền</option>
+                <option>Văn phòng</option>
+              </select>
+              <input
+                type="text"
+                placeholder="Khu vực"
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <select className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option>Tất cả giá</option>
+                <option>Dưới 1 tỷ</option>
+                <option>1-2 tỷ</option>
+                <option>2-3 tỷ</option>
+                <option>Trên 3 tỷ</option>
+              </select>
+              <Link
+                to="/listings"
+                className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-bold text-center hover:bg-blue-700 transition"
+              >
+                Tìm kiếm
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Featured Listings */}
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">Tin đăng nổi bật</h2>
+            <Link to="/listings" className="text-blue-600 hover:text-blue-700 font-bold">Xem tất cả →</Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden cursor-pointer">
+                <div className="h-48 bg-gray-300 flex items-center justify-center text-4xl">🏠</div>
+                <div className="p-4">
+                  <p className="text-xs text-gray-500 mb-1 font-medium">Quận {i} • 60 m²</p>
+                  <h3 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2">Căn hộ premium tại Quận {i}</h3>
+                  <p className="text-lg font-bold text-blue-600 mb-3">{1.5 + i} tỷ</p>
+                  <p className="text-xs text-gray-600 line-clamp-2 mb-3">Giá tốt, vị trí đắc địa, nội thất hiện đại</p>
+                  <Link to="/listings" className="w-full bg-blue-600 text-white py-2 rounded text-sm font-medium hover:bg-blue-700 transition text-center block">
+                    Xem chi tiết
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        <div className="bg-white py-12 px-4 border-t border-gray-200">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+              <div>
+                <div className="text-4xl font-bold text-blue-600 mb-2">10K+</div>
+                <p className="text-gray-600">Bất động sản</p>
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-blue-600 mb-2">50K+</div>
+                <p className="text-gray-600">Người dùng</p>
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-blue-600 mb-2">98%</div>
+                <p className="text-gray-600">Hài lòng</p>
+              </div>
+              <div>
+                <div className="text-4xl font-bold text-blue-600 mb-2">24/7</div>
+                <p className="text-gray-600">Hỗ trợ</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA Section */}
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white text-center">
+            <h2 className="text-3xl font-bold mb-4">Bắt đầu tìm kiếm ngay</h2>
+            <p className="text-blue-100 mb-6 max-w-2xl mx-auto">Đăng ký để nhận thông báo về tin đăng mới, giảm giá và các ưu đãi độc quyền</p>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <Link to="/listings" className="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-blue-50 transition">
+                Xem Tin Đăng
+              </Link>
+              <Link to="/signup" className="bg-blue-700 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-800 transition border border-blue-600">
+                Đăng Ký Ngay
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <footer className="bg-gray-900 text-gray-400 py-8 px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+              <div>
+                <h3 className="text-white font-bold mb-4">SmartEstate</h3>
+                <p className="text-sm">Nền tảng tìm kiếm bất động sản hàng đầu tại Việt Nam</p>
+              </div>
+              <div>
+                <h4 className="text-white font-bold mb-4">Về chúng tôi</h4>
+                <ul className="space-y-2 text-sm">
+                  <li><a href="#" className="hover:text-white transition">Giới thiệu</a></li>
+                  <li><a href="#" className="hover:text-white transition">Blog</a></li>
+                  <li><a href="#" className="hover:text-white transition">Tuyển dụng</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-white font-bold mb-4">Hỗ trợ</h4>
+                <ul className="space-y-2 text-sm">
+                  <li><a href="#" className="hover:text-white transition">Liên hệ</a></li>
+                  <li><a href="#" className="hover:text-white transition">FAQ</a></li>
+                  <li><a href="#" className="hover:text-white transition">Điều khoản</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-white font-bold mb-4">Theo dõi</h4>
+                <ul className="space-y-2 text-sm">
+                  <li><a href="#" className="hover:text-white transition">Facebook</a></li>
+                  <li><a href="#" className="hover:text-white transition">Instagram</a></li>
+                  <li><a href="#" className="hover:text-white transition">Twitter</a></li>
+                </ul>
+              </div>
+            </div>
+            <div className="border-t border-gray-800 pt-6 text-center text-sm">
+              <p>&copy; 2026 SmartEstate. Tất cả quyền được bảo lưu.</p>
+            </div>
+          </div>
+        </footer>
+      </div>
+    )
+  }
+
+  // Authenticated layout - with sidebar
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="w-64 bg-white h-screen fixed left-0 top-0 border-r border-gray-100 z-10 flex flex-col">

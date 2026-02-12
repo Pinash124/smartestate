@@ -1,5 +1,5 @@
 import { ApiAuthLoginResponse, ApiAuthRegisterRequest, ApiUserRole, User, UserRole } from '@/types';
-import { apiRequest, setToken } from './api';
+import { apiRequest, setToken, ApiError } from './api';
 
 const PERMISSIONS: Record<UserRole, string[]> = {
   guest: ['browse_listings', 'register', 'login'],
@@ -40,13 +40,23 @@ const PERMISSIONS: Record<UserRole, string[]> = {
   ],
 };
 
+export interface AuthError {
+  message: string;
+  code?: string;
+}
+
 export class AuthService {
   private currentUser: User | null = null;
 
   constructor() {
     const saved = localStorage.getItem('currentUser');
     if (saved) {
-      this.currentUser = JSON.parse(saved);
+      try {
+        this.currentUser = JSON.parse(saved);
+      } catch {
+        // Invalid stored data, clear it
+        this.logout();
+      }
     }
   }
 
@@ -58,46 +68,88 @@ export class AuthService {
     return 'user';
   }
 
-  async login(email: string, password: string): Promise<boolean> {
-    const data = await apiRequest<ApiAuthLoginResponse>('/api/auth/login', {
-      method: 'POST',
-      body: { email, password },
-    });
+  async login(email: string, password: string): Promise<{ success: boolean; error?: AuthError }> {
+    try {
+      const data = await apiRequest<ApiAuthLoginResponse>('/api/auth/login', {
+        method: 'POST',
+        body: { email, password },
+      });
 
-    setToken(data.token);
+      setToken(data.token);
 
-    const name = data.email.split('@')[0] || data.email;
-    const role = this.normalizeRole(data.role);
-    const user: User = {
-      id: data.userId,
-      name,
-      email: data.email,
-      password: '',
-      role,
-      profile: {
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
-      },
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      const name = data.email.split('@')[0] || data.email;
+      const role = this.normalizeRole(data.role);
+      const user: User = {
+        id: data.userId,
+        name,
+        email: data.email,
+        password: '',
+        role,
+        profile: {
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-    this.currentUser = user;
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    return true;
+      this.currentUser = user;
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      return { success: true };
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return {
+          success: false,
+          error: {
+            message: error.message,
+            code: error.code,
+          },
+        };
+      }
+      return {
+        success: false,
+        error: {
+          message: error instanceof Error ? error.message : 'Đã xảy ra lỗi',
+        },
+      };
+    }
   }
 
-  async register(name: string, email: string, password: string, role: UserRole): Promise<boolean> {
-    void role;
-    const payload: ApiAuthRegisterRequest = {
-      email,
-      password,
-      displayName: name,
-    };
-    await apiRequest<void>('/api/auth/register', {
-      method: 'POST',
-      body: payload,
-    });
-    return this.login(email, password);
+  async register(
+    name: string,
+    email: string,
+    password: string,
+    role: UserRole
+  ): Promise<{ success: boolean; error?: AuthError }> {
+    try {
+      void role;
+      const payload: ApiAuthRegisterRequest = {
+        email,
+        password,
+        displayName: name,
+      };
+      await apiRequest<void>('/api/auth/register', {
+        method: 'POST',
+        body: payload,
+      });
+      // After successful registration, login
+      return this.login(email, password);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return {
+          success: false,
+          error: {
+            message: error.message,
+            code: error.code,
+          },
+        };
+      }
+      return {
+        success: false,
+        error: {
+          message: error instanceof Error ? error.message : 'Đã xảy ra lỗi',
+        },
+      };
+    }
   }
 
   logout(): void {

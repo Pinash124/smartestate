@@ -22,13 +22,15 @@ export default function LoginPage({ setIsAuthenticated }: LoginPageProps) {
     }
 
     try {
-      const ok = await authService.login(email, password)
-      if (ok) {
+      const result = await authService.login(email, password)
+      if (result.success) {
         setIsAuthenticated(true)
         navigate('/')
+      } else {
+        setError(result.error?.message || 'Đăng nhập thất bại')
       }
-    } catch {
-      setError('Email hoặc mật khẩu không chính xác')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi')
     }
   }
 

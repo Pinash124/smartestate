@@ -36,7 +36,8 @@ export default function ListingsPage() {
         })
         setListings(filtered)
         setFilteredListings(filtered)
-      } catch {
+      } catch (error) {
+        console.error('Failed to load listings:', error)
         setListings([])
         setFilteredListings([])
       } finally {
@@ -118,6 +119,151 @@ export default function ListingsPage() {
     setFavoriteIds(listingService.getFavoriteIds(user.id))
   }
 
+  if (!isAuthenticated) {
+    // Guest layout - full width without sidebar
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white shadow">
+          <div className="max-w-7xl mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Danh sách bất động sản</h1>
+            <p className="text-gray-600">Khám phá những tài sản tuyệt vời</p>
+          </div>
+        </div>
+
+        {/* Filter Bar */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {/* Search */}
+              <input
+                type="text"
+                placeholder="Tìm kiếm..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="col-span-2 sm:col-span-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              {/* Type */}
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Loại BĐS</option>
+                <option value="apartment">Chung cư</option>
+                <option value="house">Nhà</option>
+                <option value="land">Đất</option>
+                <option value="office">Văn phòng</option>
+              </select>
+
+              {/* City */}
+              <select
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Thành phố</option>
+                <option value="Hà Nội">Hà Nội</option>
+                <option value="TP Hồ Chí Minh">TP HCM</option>
+                <option value="Đà Nẵng">Đà Nẵng</option>
+                <option value="Cần Thơ">Cần Thơ</option>
+              </select>
+
+              {/* Price */}
+              <select
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Giá</option>
+                <option value="1">Từ 1 tỷ</option>
+                <option value="2">Từ 2 tỷ</option>
+                <option value="3">Từ 3 tỷ</option>
+                <option value="5">Từ 5 tỷ</option>
+              </select>
+
+              {/* Reset */}
+              <button
+                onClick={() => {
+                  setSearchTerm('')
+                  setType('')
+                  setTransaction('')
+                  setCity('')
+                  setMinPrice('')
+                  setMaxPrice('')
+                  setMinArea('')
+                }}
+                className="col-span-2 sm:col-span-1 bg-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm hover:bg-gray-300 transition font-medium"
+              >
+                Xóa lọc
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-gray-600">
+              Tìm thấy <strong className="text-gray-900">{filteredListings.length}</strong> tin đăng
+            </p>
+          </div>
+
+          {filteredListings.length === 0 ? (
+            <div className="bg-white rounded-lg shadow p-12 text-center">
+              <p className="text-gray-600 text-lg">Không tìm thấy tin đăng phù hợp</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredListings.map((listing) => (
+                <div
+                  key={listing.id}
+                  className="bg-white rounded-lg shadow hover:shadow-lg transition cursor-pointer overflow-hidden group"
+                  onClick={() => navigate(`/listing/${listing.id}`)}
+                >
+                  {/* Image */}
+                  {listing.images.length > 0 ? (
+                    <div className="relative overflow-hidden h-48 bg-gray-200">
+                      <img
+                        src={listing.images[0]}
+                        alt={listing.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition"
+                      />
+                      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition"></div>
+                    </div>
+                  ) : (
+                    <div className="w-full h-48 bg-gray-300 flex items-center justify-center">
+                      <p className="text-gray-600">Không có ảnh</p>
+                    </div>
+                  )}
+
+                  {/* Info */}
+                  <div className="p-4">
+                    <p className="text-xs text-gray-500 mb-1 font-medium">
+                      {listing.city} • {listing.area} m²
+                    </p>
+                    <h3 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2 h-10">
+                      {listing.title}
+                    </h3>
+                    <p className="text-xl font-bold text-blue-600 mb-3">{listing.price}</p>
+                    <p className="text-xs text-gray-600 line-clamp-2 mb-3 h-8">
+                      {listing.description}
+                    </p>
+                    <button className="w-full bg-blue-600 text-white py-2 rounded text-sm font-medium hover:bg-blue-700 transition">
+                      Xem chi tiết
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Authenticated user layout - with sidebar
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
