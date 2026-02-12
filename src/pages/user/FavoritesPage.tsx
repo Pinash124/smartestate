@@ -11,18 +11,33 @@ export default function FavoritesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) {
-      setLoading(false)
-      return
+    const loadFavorites = async () => {
+      if (!user) {
+        setLoading(false)
+        return
+      }
+      try {
+        const favs = await listingService.getFavoriteListings()
+        setFavorites(favs)
+      } catch (error) {
+        console.error('Error loading favorites:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-    setFavorites(listingService.getFavoriteListings(user.id))
-    setLoading(false)
+    void loadFavorites()
   }, [user])
 
-  const handleRemove = (listingId: string) => {
+  const handleRemove = async (listingId: string) => {
     if (!user) return
-    listingService.removeFavorite(listingId, user.id)
-    setFavorites(listingService.getFavoriteListings(user.id))
+    try {
+      const success = await listingService.removeFavorite(listingId)
+      if (success) {
+        setFavorites(favorites.filter((f) => f.id !== listingId))
+      }
+    } catch (error) {
+      console.error('Error removing favorite:', error)
+    }
   }
 
   if (!user) {

@@ -14,12 +14,22 @@ export default function MyListingsPage() {
   const [filterStatus, setFilterStatus] = useState('all')
 
   useEffect(() => {
-    if (!user) return
+    const loadUserListings = async () => {
+      if (!user) return
 
-    const allListings = listingService.getAllListings()
-    const userListings = allListings.filter((l) => l.sellerId === user.id)
-    setListings(userListings)
-    setLoading(false)
+      try {
+        // Fetch all approved listings and filter by current seller
+        // TODO: Backend should provide GET /api/users/me/listings
+        const allListings = await listingService.fetchListings()
+        const userListings = allListings.filter((l) => l.sellerId === user.id)
+        setListings(userListings)
+      } catch (error) {
+        console.error('Error loading listings:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    void loadUserListings()
   }, [user])
 
   // ✅ phải đặt ngoài return

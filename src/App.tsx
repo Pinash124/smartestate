@@ -18,7 +18,7 @@ import AdminRevenuePage from '@/pages/admin/RevenuePage'
 import AdminUserManagementPage from '@/pages/admin/UserManagementPage'
 import UserAIRecommendPage from '@/pages/user/AIRecommendPage'
 import UserFavoritesPage from '@/pages/user/FavoritesPage'
-import TestDataPage from '@/pages/TestDataPage'
+// import TestDataPage from '@/pages/TestDataPage'  // Deprecated: using API instead of mock data
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 
 function App() {
@@ -65,8 +65,8 @@ function App() {
         <Route path="/admin/revenue" element={<AdminRevenuePage />} />
         <Route path="/admin/users" element={<AdminUserManagementPage />} />
 
-        {/* Test Route */}
-        <Route path="/test-data" element={<TestDataPage />} />
+        {/* Test Route - Deprecated */}
+        {/* <Route path="/test-data" element={<TestDataPage />} /> */}
       </Routes>
     </Router>
   )

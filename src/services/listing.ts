@@ -117,40 +117,8 @@ export class AIModerationService {
   }
 }
 
-// Payment Service
-export class PaymentService {
-  recordPayment(payment: Omit<Payment, 'id'>): Payment {
-    const payments = JSON.parse(localStorage.getItem('payments') || '[]') as Payment[];
-    const newPayment: Payment = {
-      ...payment,
-      id: payments.length + 1,
-    };
-    payments.push(newPayment);
-    localStorage.setItem('payments', JSON.stringify(payments));
-    return newPayment;
-  }
-
-  getRevenueByDateRange(startDate: Date, endDate: Date): Record<string, number> {
-    const payments = JSON.parse(localStorage.getItem('payments') || '[]') as Payment[];
-    const revenue: Record<string, number> = {
-      total: 0,
-      post_listing: 0,
-      push_listing: 0,
-      broker_fee: 0,
-      takeover_fee: 0,
-    };
-
-    for (const payment of payments) {
-      const paymentDate = new Date(payment.date);
-      if (paymentDate >= startDate && paymentDate <= endDate && payment.status === 'PAID') {
-        revenue.total += payment.amount;
-        revenue[payment.type] = (revenue[payment.type] || 0) + payment.amount;
-      }
-    }
-
-    return revenue;
-  }
-}
+// Payment Service (Deprecated - use backend API)
+// export class PaymentService {
 
 // Listing Service
 export class ListingService {
@@ -266,220 +234,63 @@ export class ListingService {
     localStorage.setItem(FAVORITE_KEY, JSON.stringify(map));
   }
 
-  createListing(listing: Omit<Listing, 'id' | 'status' | 'moderation'>): Listing {
-    const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
-
-    const newListing: Listing = {
-      ...listing,
-      id: String(Date.now()),
-      status: LISTING_STATUS.PENDING_MODERATION,
-      createdAt: new Date(),
-    } as Listing;
-
-    // Run moderation
-    const moderation = this.moderationService.runModeration(newListing);
-    newListing.moderation = moderation;
-
-    // Auto-decide status
-    if (moderation.decision === 'APPROVED') {
-      newListing.status = LISTING_STATUS.APPROVED;
-      newListing.approvedAt = new Date();
-    } else if (moderation.decision === 'REJECTED') {
-      newListing.status = LISTING_STATUS.REJECTED;
-    }
-
-    // Record payment
-    this.paymentService.recordPayment({
-      type: PAYMENT_TYPE.POST_LISTING,
-      amount: 50000,
-      listingId: newListing.id,
-      userId: listing.sellerId,
-      status: 'PAID',
-      date: new Date(),
-      description: `Phí đăng tin: ${listing.title}`,
-    });
-
-    listings.push(newListing);
-    localStorage.setItem('listings', JSON.stringify(listings));
-    return newListing;
-  }
-
-  approveListing(listingId: string, adminId: string): boolean {
-    const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
-    const listing = listings.find((l) => l.id === listingId);
-
-    if (!listing) return false;
-
-    listing.status = LISTING_STATUS.APPROVED;
-    listing.moderation.decision = 'APPROVED';
-    listing.moderation.status = MODERATION_STATUS.MANUALLY_APPROVED;
-    listing.moderation.reviewedBy = adminId;
-    listing.moderation.reviewedAt = new Date();
-    listing.approvedAt = new Date();
-
-    localStorage.setItem('listings', JSON.stringify(listings));
-    return true;
-  }
-
-  rejectListing(listingId: string, adminId: string): boolean {
-    const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
-    const listing = listings.find((l) => l.id === listingId);
-
-    if (!listing) return false;
-
-    listing.status = LISTING_STATUS.REJECTED;
-    listing.moderation.decision = 'REJECTED';
-    listing.moderation.status = MODERATION_STATUS.MANUALLY_REJECTED;
-    listing.moderation.reviewedBy = adminId;
-    listing.moderation.reviewedAt = new Date();
-
-    localStorage.setItem('listings', JSON.stringify(listings));
-    return true;
-  }
-
-  reportListing(
-    listingId: string,
-    userId: string,
-    reason: string,
-    note: string
-  ): boolean {
-    const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
-    const listing = listings.find((l) => l.id === listingId);
-
-    if (!listing) return false;
-
-    if (!listing.reports) listing.reports = [];
-    listing.reports.push({
-      userId,
-      reason,
-      note,
-      reportedAt: new Date(),
-    });
-
-    localStorage.setItem('listings', JSON.stringify(listings));
-    return true;
-  }
-
-  requestBrokerTakeover(listingId: string, brokerId: string, sellerName: string): boolean {
-    const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
-    const listing = listings.find((l) => l.id === listingId);
-
-    if (!listing) return false;
-
-    if (!listing.brokerRequests) listing.brokerRequests = [];
-    listing.brokerRequests.push({
-      brokerId,
-      status: 'pending',
-      requestedAt: new Date(),
-      sellerName,
-    });
-
-    localStorage.setItem('listings', JSON.stringify(listings));
-    return true;
-  }
-
-  acceptBrokerTakeover(listingId: string, brokerId: string): boolean {
-    const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
-    const listing = listings.find((l) => l.id === listingId);
-
-    if (!listing || !listing.brokerRequests) return false;
-
-    const request = listing.brokerRequests.find((r) => r.brokerId === brokerId);
-    if (!request) return false;
-
-    request.status = 'accepted';
-    request.respondedAt = new Date();
-    listing.responsibleBrokerId = brokerId;
-
-    // Record takeover fee
-    this.paymentService.recordPayment({
-      type: PAYMENT_TYPE.TAKEOVER_FEE,
-      amount: 500000,
-      listingId,
-      brokerId,
-      status: 'PAID',
-      date: new Date(),
-      description: `Phí hỗ trợ bán/cho thuê: ${listing.title}`,
-    });
-
-    localStorage.setItem('listings', JSON.stringify(listings));
-    return true;
-  }
-
-  unassignBroker(listingId: string, brokerId: string): boolean {
-    const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
-    const listing = listings.find((l) => l.id === listingId);
-
-    if (!listing || listing.responsibleBrokerId !== brokerId) return false;
-
-    listing.responsibleBrokerId = undefined;
-    localStorage.setItem('listings', JSON.stringify(listings));
-    return true;
-  }
-
-  updateListing(listing: Listing): boolean {
-    const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
-    const index = listings.findIndex((l) => l.id === listing.id);
-    if (index === -1) return false;
-    listings[index] = listing;
-    localStorage.setItem('listings', JSON.stringify(listings));
-    return true;
-  }
-
-  getListing(id: string): Listing | null {
-    const listings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
-    return listings.find((l) => l.id === id) || null;
-  }
-
-  getAllListings(): Listing[] {
-    return JSON.parse(localStorage.getItem('listings') || '[]');
-  }
-
-  getApprovedListings(): Listing[] {
-    const listings = this.getAllListings();
-    return listings.filter((l) => l.status === LISTING_STATUS.APPROVED || l.status === LISTING_STATUS.ACTIVE);
-  }
-
-  getFavoriteIds(userId: string): string[] {
-    const map = this.getFavoriteMap();
-    return map[String(userId)] || [];
-  }
-
-  isFavorite(listingId: string, userId: string): boolean {
-    return this.getFavoriteIds(userId).includes(listingId);
-  }
-
-  addFavorite(listingId: string, userId: string): boolean {
-    const map = this.getFavoriteMap();
-    const key = String(userId);
-    const list = map[key] || [];
-    if (list.includes(listingId)) return true;
-    map[key] = [...list, listingId];
-    this.saveFavoriteMap(map);
-    return true;
-  }
-
-  removeFavorite(listingId: string, userId: string): boolean {
-    const map = this.getFavoriteMap();
-    const key = String(userId);
-    const list = map[key] || [];
-    map[key] = list.filter((id) => id !== listingId);
-    this.saveFavoriteMap(map);
-    return true;
-  }
-
-  toggleFavorite(listingId: string, userId: string): boolean {
-    if (this.isFavorite(listingId, userId)) {
-      this.removeFavorite(listingId, userId);
+  // API Methods
+  async addFavorite(listingId: string): Promise<boolean> {
+    try {
+      await apiRequest(`/api/users/me/favorites/${listingId}`, {
+        method: 'POST',
+        auth: true,
+      });
+      return true;
+    } catch (error) {
+      console.error('Error adding favorite:', error);
       return false;
     }
-    this.addFavorite(listingId, userId);
-    return true;
   }
 
-  getFavoriteListings(userId: string): Listing[] {
-    const favoriteIds = new Set(this.getFavoriteIds(userId));
-    return this.getAllListings().filter((listing) => favoriteIds.has(listing.id));
+  async removeFavorite(listingId: string): Promise<boolean> {
+    try {
+      await apiRequest(`/api/users/me/favorites/${listingId}`, {
+        method: 'DELETE',
+        auth: true,
+      });
+      return true;
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+      return false;
+    }
+  }
+
+  async toggleFavorite(listingId: string): Promise<boolean> {
+    const oldIsFav = this.isFavorite(listingId);
+    if (oldIsFav) {
+      return this.removeFavorite(listingId);
+    }
+    return this.addFavorite(listingId);
+  }
+
+  async getFavoriteListings(page: number = 1, pageSize: number = 20): Promise<Listing[]> {
+    try {
+      const response = await apiRequest<any>(`/api/users/me/favorites?page=${page}&pageSize=${pageSize}`, {
+        auth: true,
+      });
+      const items = response?.items || response || [];
+      return Array.isArray(items) ? items.map((item: ApiListingDetail) => this.mapApiListing(item)) : [];
+    } catch (error) {
+      console.error('Error fetching favorite listings:', error);
+      return [];
+    }
+  }
+
+  // Local cache for favorites (check if favorite)
+  private favoriteCache: Set<string> = new Set();
+
+  isFavorite(listingId: string): boolean {
+    return this.favoriteCache.has(listingId);
+  }
+
+  setFavoriteCache(listingIds: string[]): void {
+    this.favoriteCache = new Set(listingIds);
   }
 }
 

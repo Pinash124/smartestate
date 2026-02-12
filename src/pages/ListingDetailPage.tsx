@@ -49,9 +49,23 @@ export default function ListingDetailPage() {
 
   useEffect(() => {
     if (listing && currentUser) {
-      setIsFavorite(listingService.isFavorite(listing.id, currentUser.id))
+      setIsFavorite(listingService.isFavorite(listing.id))
     }
   }, [listing, currentUser])
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
+    }
+    if (!listing) return
+    try {
+      const newState = await listingService.toggleFavorite(listing.id)
+      setIsFavorite(newState)
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    }
+  }
 
   const handleRevealPhone = async () => {
     if (!isAuthenticated) {
@@ -86,26 +100,24 @@ export default function ListingDetailPage() {
     }
   }
 
-  const handleStartChat = () => {
+  const handleStartChat = async () => {
     if (!isAuthenticated) {
       navigate('/login')
       return
     }
-    if (listing && currentUser && listing.responsibleBrokerId !== currentUser.id) {
-      const otherUserId = listing.responsibleBrokerId || listing.sellerId
-      const conversation = chatService.createConversation(currentUser.id, otherUserId, listing.id)
-      navigate('/messages/' + conversation.id)
-    }
-  }
+    if (!listing || !currentUser) return
 
-  const handleToggleFavorite = () => {
-    if (!listing) return
-    if (!currentUser) {
-      navigate('/login')
-      return
+    try {
+      const otherUserId = listing.responsibleBrokerId || listing.sellerId
+      const conversation = await chatService.createConversation(
+        currentUser.id,
+        otherUserId,
+        listing.id
+      )
+      navigate('/messages/' + conversation.id)
+    } catch (error) {
+      console.error('Error starting chat:', error)
     }
-    const next = listingService.toggleFavorite(listing.id, currentUser.id)
-    setIsFavorite(next)
   }
 
   if (loading) {

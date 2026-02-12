@@ -14,36 +14,50 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user || !id) {
-      navigate('/listings')
-      return
+    const loadConversation = async () => {
+      if (!user || !id) {
+        navigate('/listings')
+        return
+      }
+
+      try {
+        const conv = await chatService.getConversation(id)
+        if (!conv || !conv.participants.includes(user.id)) {
+          navigate('/listings')
+          return
+        }
+
+        setConversation(conv)
+        const msgs = await chatService.getMessages(id)
+        setMessages(msgs)
+      } catch (error) {
+        console.error('Error loading conversation:', error)
+        navigate('/listings')
+      } finally {
+        setLoading(false)
+      }
     }
 
-    const conv = chatService.getConversation(parseInt(id))
-    if (!conv || !conv.participants.includes(user.id)) {
-      navigate('/listings')
-      return
-    }
-
-    setConversation(conv)
-    const msgs = chatService.getMessages(parseInt(id))
-    setMessages(msgs)
-    setLoading(false)
+    void loadConversation()
   }, [id, user, navigate])
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newMessage.trim() || !conversation || !user) return
 
-    const message = chatService.sendMessage(
-      conversation.id,
-      user.id,
-      user.name,
-      newMessage
-    )
+    try {
+      const message = await chatService.sendMessage(
+        conversation.id as string,
+        user.id,
+        user.name,
+        newMessage
+      )
 
-    setMessages([...messages, message])
-    setNewMessage('')
+      setMessages([...messages, message])
+      setNewMessage('')
+    } catch (error) {
+      console.error('Error sending message:', error)
+    }
   }
 
   if (!user) {

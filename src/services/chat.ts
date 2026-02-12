@@ -1,105 +1,229 @@
 import { ChatMessage, Conversation } from '../types/index'
+import { apiRequest } from './api'
+
+interface StartConversationRequest {
+  participantId: string
+  listingId: string
+}
+
+interface SendMessageRequest {
+  content: string
+}
+
+interface ConversationDto {
+  id: string
+  participants: string[]
+  listingId: string
+  createdAt: string
+  lastMessage?: MessageDto
+  lastMessageAt?: string
+}
+
+interface MessageDto {
+  id: string
+  conversationId: string
+  senderId: string
+  senderName: string
+  content: string
+  createdAt: string
+  readAt?: string
+}
 
 class ChatService {
-  private conversations: Conversation[] = []
-  private messages: ChatMessage[] = []
-
-  constructor() {
-    this.loadFromStorage()
-  }
-
-  private loadFromStorage(): void {
-    const stored = localStorage.getItem('conversations')
-    const storedMessages = localStorage.getItem('messages')
-    if (stored) this.conversations = JSON.parse(stored)
-    if (storedMessages) this.messages = JSON.parse(storedMessages)
-  }
-
-  private saveToStorage(): void {
-    localStorage.setItem('conversations', JSON.stringify(this.conversations))
-    localStorage.setItem('messages', JSON.stringify(this.messages))
-  }
-
-  createConversation(
+  /**
+   * Create or get existing conversation with another user
+   */
+  async createConversation(
     participant1Id: string,
     participant2Id: string,
     listingId: string
-  ): Conversation {
-    const existingConv = this.conversations.find(
-      (c) =>
-        c.listingId === listingId &&
-        c.participants.includes(participant1Id) &&
-        c.participants.includes(participant2Id)
-    )
-
-    if (existingConv) return existingConv
-
-    const conversation: Conversation = {
-      id: Date.now(),
-      participants: [participant1Id, participant2Id],
-      listingId,
-      createdAt: new Date(),
+  ): Promise<Conversation> {
+    try {
+      const response = await apiRequest<{ conversationId: string }>(
+        '/api/messages/conversations',
+        {
+          method: 'POST',
+          body: {
+            participantId: participant2Id,
+            listingId: listingId,
+          },
+          auth: true,
+        }
+      )
+      
+      // Convert response to Conversation type
+      return {
+        id: response.conversationId,
+        participants: [participant1Id, participant2Id],
+        listingId,
+        createdAt: new Date(),
+      }
+    } catch (error) {
+      console.error('Error creating conversation:', error)
+      throw error
     }
-
-    this.conversations.push(conversation)
-    this.saveToStorage()
-    return conversation
   }
 
-  getConversation(conversationId: number): Conversation | null {
-    return this.conversations.find((c) => c.id === conversationId) || null
+  /**
+   * Get a specific conversation
+   */
+  async getConversation(conversationId: string): Promise<Conversation | null> {
+    try {
+      const response = await apiRequest<ConversationDto>(
+        `/api/messages/conversations/${conversationId}`,
+        { auth: true }
+      )
+      
+      return {
+        id: response.id,
+        participants: response.participants,
+        listingId: response.listingId,
+        createdAt: new Date(response.createdAt),
+        lastMessage: response.lastMessage
+          ? {
+              id: response.lastMessage.id,
+              conversationId: response.lastMessage.conversationId,
+              senderId: response.lastMessage.senderId,
+              senderName: response.lastMessage.senderName,
+              content: response.lastMessage.content,
+              createdAt: new Date(response.lastMessage.createdAt),
+            }
+          : undefined,
+        lastMessageAt: response.lastMessageAt
+          ? new Date(response.lastMessageAt)
+          : undefined,
+      }
+    } catch (error) {
+      console.error('Error fetching conversation:', error)
+      return null
+    }
   }
 
-  getUserConversations(userId: string): Conversation[] {
-    return this.conversations
-      .filter((c) => c.participants.includes(userId))
-      .sort((a, b) => (b.lastMessageAt?.getTime() || 0) - (a.lastMessageAt?.getTime() || 0))
+  /**
+   * Get all conversations for current user
+   */
+  async getUserConversations(userId: string): Promise<Conversation[]> {
+    try {
+      const response = await apiRequest<ConversationDto[]>(
+        '/api/messages/conversations',
+        { auth: true }
+      )
+
+      return (response || []).map((conv) => ({
+        id: conv.id,
+        participants: conv.participants,
+        listingId: conv.listingId,
+        createdAt: new Date(conv.createdAt),
+        lastMessage: conv.lastMessage
+          ? {
+              id: conv.lastMessage.id,
+              conversationId: conv.lastMessage.conversationId,
+              senderId: conv.lastMessage.senderId,
+              senderName: conv.lastMessage.senderName,
+              content: conv.lastMessage.content,
+              createdAt: new Date(conv.lastMessage.createdAt),
+            }
+          : undefined,
+        lastMessageAt: conv.lastMessageAt
+          ? new Date(conv.lastMessageAt)
+          : undefined,
+      }))
+    } catch (error) {
+      console.error('Error fetching conversations:', error)
+      return []
+    }
   }
 
-  sendMessage(
-    conversationId: number,
+  /**
+   * Send message to a conversation
+   */
+  async sendMessage(
+    conversationId: string,
     senderId: string,
     senderName: string,
     content: string
-  ): ChatMessage {
-    const message: ChatMessage = {
-      id: Date.now(),
-      conversationId,
-      senderId,
-      senderName,
-      content,
-      createdAt: new Date(),
-    }
+  ): Promise<ChatMessage> {
+    try {
+      const response = await apiRequest<MessageDto>(
+        `/api/messages/conversations/${conversationId}`,
+        {
+          method: 'POST',
+          body: { content },
+          auth: true,
+        }
+      )
 
-    this.messages.push(message)
-
-    // Update conversation last message
-    const conversation = this.getConversation(conversationId)
-    if (conversation) {
-      conversation.lastMessage = message
-      conversation.lastMessageAt = message.createdAt
-    }
-
-    this.saveToStorage()
-    return message
-  }
-
-  getMessages(conversationId: number): ChatMessage[] {
-    return this.messages
-      .filter((m) => m.conversationId === conversationId)
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-  }
-
-  markAsRead(messageId: number): void {
-    const message = this.messages.find((m) => m.id === messageId)
-    if (message) {
-      message.readAt = new Date()
-      this.saveToStorage()
+      return {
+        id: response.id,
+        conversationId: response.conversationId,
+        senderId: response.senderId,
+        senderName: response.senderName,
+        content: response.content,
+        createdAt: new Date(response.createdAt),
+      }
+    } catch (error) {
+      console.error('Error sending message:', error)
+      throw error
     }
   }
 
-  getUnreadCount(userId: string): number {
-    return this.messages.filter((m) => !m.readAt && m.senderId !== userId).length
+  /**
+   * Get messages in a conversation
+   */
+  async getMessages(conversationId: string): Promise<ChatMessage[]> {
+    try {
+      const response = await apiRequest<MessageDto[]>(
+        `/api/messages/conversations/${conversationId}`,
+        { auth: true }
+      )
+
+      return (response || []).map((msg) => ({
+        id: msg.id,
+        conversationId: msg.conversationId,
+        senderId: msg.senderId,
+        senderName: msg.senderName,
+        content: msg.content,
+        createdAt: new Date(msg.createdAt),
+        readAt: msg.readAt ? new Date(msg.readAt) : undefined,
+      }))
+    } catch (error) {
+      console.error('Error fetching messages:', error)
+      return []
+    }
+  }
+
+  /**
+   * Mark message as read (optional - may implement later)
+   */
+  async markAsRead(messageId: string): Promise<boolean> {
+    try {
+      // TODO: Implement if backend has endpoint
+      console.log('Mark as read:', messageId)
+      return true
+    } catch (error) {
+      console.error('Error marking as read:', error)
+      return false
+    }
+  }
+
+  /**
+   * Get unread message count (TODO: implement with backend)
+   */
+  async getUnreadCount(userId: string): Promise<number> {
+    try {
+      const conversations = await this.getUserConversations(userId)
+      let unreadCount = 0
+      
+      for (const conv of conversations) {
+        const messages = await this.getMessages(conv.id as string)
+        unreadCount += messages.filter((m) => !m.readAt && m.senderId !== userId).length
+      }
+      
+      return unreadCount
+    } catch (error) {
+      console.error('Error getting unread count:', error)
+      return 0
+    }
   }
 }
 

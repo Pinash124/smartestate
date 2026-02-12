@@ -133,8 +133,8 @@ export interface RecommendedListing {
 }
 // Chat types
 export interface ChatMessage {
-  id: number;
-  conversationId: number;
+  id: string;
+  conversationId: string;
   senderId: string;
   senderName: string;
   content: string;
@@ -143,7 +143,7 @@ export interface ChatMessage {
 }
 
 export interface Conversation {
-  id: number;
+  id: string | number;
   participants: string[];
   listingId: string;
   lastMessage?: ChatMessage;

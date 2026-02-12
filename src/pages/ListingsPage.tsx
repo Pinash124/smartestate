@@ -110,13 +110,22 @@ export default function ListingsPage() {
     )
   }
 
-  const handleToggleFavorite = (listingId: string) => {
-    if (!user) {
+  const handleToggleFavorite = async (listingId: string) => {
+    if (!isAuthenticated) {
       navigate('/login')
       return
     }
-    listingService.toggleFavorite(listingId, user.id)
-    setFavoriteIds(listingService.getFavoriteIds(user.id))
+    try {
+      const isFav = await listingService.toggleFavorite(listingId)
+      // Update UI by re-fetching or update favorites
+      if (isFav) {
+        setFavoriteIds([...favoriteIds, listingId])
+      } else {
+        setFavoriteIds(favoriteIds.filter((id) => id !== listingId))
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+    }
   }
 
   if (!isAuthenticated) {

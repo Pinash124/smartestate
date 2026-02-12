@@ -1,36 +1,48 @@
 import { Listing, RecommendedListing, RecommendationReason, UserPreferences } from '@/types';
+import { apiRequest } from './api';
 import { listingService } from './listing';
 
 export class AIRecommendationService {
-  submitPreferences(userId: string, preferences: UserPreferences): void {
-    const userPreferences = JSON.parse(localStorage.getItem('userPreferences') || '{}');
-    userPreferences[userId] = preferences;
-    localStorage.setItem('userPreferences', JSON.stringify(userPreferences));
+  // Store user preferences (could be saved to backend later)
+  async submitPreferences(userId: string, preferences: UserPreferences): Promise<void> {
+    try {
+      // TODO: Add backend API endpoint for storing user preferences
+      // await apiRequest(`/api/users/me/preferences`, {
+      //   method: 'POST',
+      //   body: preferences,
+      //   auth: true,
+      // });
+      console.log('Preferences submitted:', preferences);
+    } catch (error) {
+      console.error('Error submitting preferences:', error);
+      throw error;
+    }
   }
 
-  getRecommendations(userId: string, topN: number = 10): RecommendedListing[] {
-    const userPreferences = JSON.parse(localStorage.getItem('userPreferences') || '{}');
-    const preferences = userPreferences[userId] as UserPreferences | undefined;
+  // Get recommendations - currently uses search API filtered by user preferences
+  async getRecommendations(preferences: UserPreferences, topN: number = 10): Promise<RecommendedListing[]> {
+    try {
+      // Use search API with filters based on user preferences
+      const listings = await listingService.fetchListings();
+      
+      const scored = listings
+        .map((listing) => ({
+          listing,
+          score: this.scoreListingForUser(listing, preferences),
+        }))
+        .filter((item) => item.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topN);
 
-    if (!preferences) {
+      return scored.map((item) => ({
+        listing: item.listing,
+        score: item.score,
+        reasons: this.getScoreReasons(item.listing, preferences),
+      }));
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
       return [];
     }
-
-    const listings = listingService.getApprovedListings();
-    const scored = listings
-      .map((listing) => ({
-        listing,
-        score: this.scoreListingForUser(listing, preferences),
-      }))
-      .filter((item) => item.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, topN);
-
-    return scored.map((item) => ({
-      listing: item.listing,
-      score: item.score,
-      reasons: this.getScoreReasons(item.listing, preferences),
-    }));
   }
 
   scoreListingForUser(listing: Listing, preferences: UserPreferences): number {
