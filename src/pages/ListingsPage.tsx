@@ -437,7 +437,7 @@ export default function ListingsPage() {
                           }}
                           className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 text-lg flex items-center justify-center shadow hover:shadow-md transition"
                         >
-                          {favoriteIds.includes(listing.id) ? '⭐' : '☆'}
+                          {favoriteIds.includes(listing.id) ? '★' : '☆'}
                         </button>
                       </div>
                     ) : (
@@ -455,9 +455,9 @@ export default function ListingsPage() {
                       <p className="text-2xl font-bold text-blue-600 mb-3">{listing.price}</p>
 
                       <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-                        <p>📍 {listing.city}</p>
-                        <p>📏 {listing.area} m²</p>
-                        {listing.bedrooms && <p>🛏️ {listing.bedrooms} phòng</p>}
+                        <p>{listing.city}</p>
+                        <p>{listing.area} m²</p>
+                        {listing.bedrooms && <p>{listing.bedrooms} phòng</p>}
                       </div>
 
                       <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -482,11 +482,10 @@ export default function ListingsPage() {
                             event.stopPropagation()
                             handleToggleFavorite(listing.id)
                           }}
-                          className={`w-12 h-10 rounded-lg border transition ${
-                            favoriteIds.includes(listing.id)
+                          className={`w-12 h-10 rounded-lg border transition ${favoriteIds.includes(listing.id)
                               ? 'bg-amber-500 border-amber-500 text-white'
                               : 'bg-white border-gray-200 text-gray-600 hover:border-amber-400 hover:text-amber-500'
-                          }`}
+                            }`}
                         >
                           ♥
                         </button>

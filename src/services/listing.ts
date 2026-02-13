@@ -9,6 +9,8 @@ import {
   PaymentType,
 } from '@/types';
 import { API_BASE_URL, apiRequest, ApiError } from './api';
+import { authService } from './auth';
+import { MOCK_LISTINGS } from './mockData';
 
 export const LISTING_STATUS: Record<string, ListingStatus> = {
   DRAFT: 'draft',
@@ -133,8 +135,26 @@ export class ListingService {
     return `${formatted} ${currency}`;
   }
 
+
+
   private mapApiListing(listing: ApiListingDetail): Listing {
-    const name = listing.responsibleUserId ? `User ${listing.responsibleUserId.slice(0, 6)}` : 'Người đăng';
+    // Priority: 
+    // 1. Explicit sellerName from API
+    // 2. Current user's name if ID matches (optimistic update for own listings)
+    // 3. Fallback to "User ID"
+    let name = listing.sellerName;
+
+    if (!name) {
+      const currentUser = authService.getCurrentUser();
+      if (currentUser && listing.responsibleUserId === currentUser.id) {
+        name = currentUser.name;
+      }
+    }
+
+    if (!name) {
+      name = listing.responsibleUserId ? `User ${listing.responsibleUserId.slice(0, 6)}` : 'Người đăng';
+    }
+
     return {
       id: listing.id,
       sellerId: listing.responsibleUserId || '',
@@ -175,7 +195,8 @@ export class ListingService {
       if (error instanceof ApiError && error.status === 404) {
         return null;
       }
-      throw error;
+      // Return mock data when API is unavailable
+      return MOCK_LISTINGS.find((listing) => listing.id === id) || null;
     }
   }
 
@@ -185,7 +206,8 @@ export class ListingService {
       return Array.isArray(data) ? data.map((item) => this.mapApiListing(item)) : [];
     } catch (error) {
       console.error('Error fetching listings:', error);
-      return [];
+      // Return mock data when API is unavailable
+      return MOCK_LISTINGS;
     }
   }
 
@@ -240,7 +262,7 @@ export class ListingService {
 
   async removeFavorite(listingId: string): Promise<boolean> {
     try {
-      await apiRequest(`/api/users/me/favorites/${listingId}`, {
+      await apiRequest(`/ api / users / me / favorites / ${listingId} `, {
         method: 'DELETE',
         auth: true,
       });
@@ -261,7 +283,7 @@ export class ListingService {
 
   async getFavoriteListings(page: number = 1, pageSize: number = 20): Promise<Listing[]> {
     try {
-      const response = await apiRequest<any>(`/api/users/me/favorites?page=${page}&pageSize=${pageSize}`, {
+      const response = await apiRequest<any>(`/ api / users / me / favorites ? page = ${page}& pageSize=${pageSize} `, {
         auth: true,
       });
       const items = response?.items || response || [];
@@ -290,7 +312,7 @@ export class ListingService {
 
   async reportListing(listingId: string, reason: string, note: string): Promise<void> {
     try {
-      await apiRequest(`/api/listings/${listingId}/report`, {
+      await apiRequest(`/ api / listings / ${listingId}/report`, {
         method: 'POST',
         body: { reason, note },
         auth: true,
@@ -316,7 +338,7 @@ export class ListingService {
 
   async approveListing(listingId: string, adminId: string): Promise<boolean> {
     try {
-      await apiRequest(`/api/listings/${listingId}/approve`, {
+      await apiRequest(`/api/listings/${listingId} / approve`, {
         method: 'PATCH',
         body: { adminId },
         auth: true,
@@ -330,7 +352,7 @@ export class ListingService {
 
   async rejectListing(listingId: string, adminId: string, reason?: string): Promise<boolean> {
     try {
-      await apiRequest(`/api/listings/${listingId}/reject`, {
+      await apiRequest(`/ api / listings / ${listingId}/reject`, {
         method: 'PATCH',
         body: { adminId, reason },
         auth: true,

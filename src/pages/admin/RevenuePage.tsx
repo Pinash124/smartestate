@@ -68,7 +68,7 @@ export default function RevenuePage() {
   }, [payments, paymentType, startDate, endDate])
 
   const totalRevenue = filteredPayments.reduce((sum, p) => sum + p.amount, 0)
-  
+
   const revenueByType = Object.fromEntries(
     Object.keys(paymentTypeLabels).map((key) => [
       key,
@@ -97,16 +97,16 @@ export default function RevenuePage() {
         </div>
         <nav className="p-4 space-y-2">
           <Link to="/admin" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            <span className="mr-3 text-xl">🏠</span> Tổng quan
+            Tổng quan
           </Link>
           <Link to="/admin/moderation" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            <span className="mr-3 text-xl">📋</span> Duyệt tin đăng
+            Duyệt tin đăng
           </Link>
           <Link to="/admin/users" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            <span className="mr-3 text-xl">👥</span> Người dùng
+            Người dùng
           </Link>
           <Link to="/admin/revenue" className="flex items-center px-4 py-3 bg-blue-50 text-blue-600 rounded-xl transition font-bold">
-            <span className="mr-3 text-xl text-blue-500">💰</span> Doanh thu
+            Doanh thu
           </Link>
         </nav>
       </aside>
@@ -116,14 +116,14 @@ export default function RevenuePage() {
         <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10">
           <h2 className="text-lg font-bold text-gray-800">Báo cáo tài chính</h2>
           <div className="flex bg-gray-50 rounded-full px-4 py-1.5 border border-gray-100 items-center">
-             <span className="text-xs font-bold text-blue-600 uppercase tracking-tighter">Finance Hub</span>
+            <span className="text-xs font-bold text-blue-600 uppercase tracking-tighter">Finance Hub</span>
           </div>
         </header>
 
         <div className="p-8 max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Doanh thu hệ thống</h1>
-            <button 
+            <button
               onClick={() => {
                 const headers = ['Loại', 'Mô tả', 'Số tiền', 'Ngày']
                 const rows = filteredPayments.map(p => [paymentTypeLabels[p.type], p.description, p.amount, new Date(p.date).toLocaleDateString('vi-VN')])
@@ -132,7 +132,7 @@ export default function RevenuePage() {
               }}
               className="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700 transition"
             >
-              📥 Xuất báo cáo
+              Xuất báo cáo
             </button>
           </div>
 
@@ -156,7 +156,7 @@ export default function RevenuePage() {
                 </select>
               </div>
               <div className="flex items-end">
-                <button onClick={() => {setStartDate(''); setEndDate(''); setPaymentType('all');}} className="w-full py-2 text-sm font-bold text-gray-400 hover:text-gray-600 transition">
+                <button onClick={() => { setStartDate(''); setEndDate(''); setPaymentType('all'); }} className="w-full py-2 text-sm font-bold text-gray-400 hover:text-gray-600 transition">
                   Xóa bộ lọc
                 </button>
               </div>
@@ -169,9 +169,9 @@ export default function RevenuePage() {
               <p className="text-blue-100 font-medium mb-1">Tổng doanh thu thực tế</p>
               <h3 className="text-4xl font-black mb-4">{formatVND(totalRevenue)}</h3>
               <div className="flex items-center text-sm bg-white/10 w-fit px-3 py-1 rounded-full">
-                <span>📈 Tăng 12% so với tháng trước</span>
+                <span>Tăng 12% so với tháng trước</span>
               </div>
-              <div className="absolute -right-4 -bottom-4 text-9xl opacity-10">💰</div>
+              <div className="absolute -right-4 -bottom-4 text-9xl opacity-10">$</div>
             </div>
 
             <div className="bg-white rounded-[32px] p-8 border border-gray-100 shadow-sm flex flex-col justify-center">
@@ -196,7 +196,7 @@ export default function RevenuePage() {
           {/* Transactions Table */}
           <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-8 border-b border-gray-50 flex justify-between items-center">
-               <h3 className="font-bold text-xl text-gray-900">Nhật ký giao dịch</h3>
+              <h3 className="font-bold text-xl text-gray-900">Nhật ký giao dịch</h3>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left">

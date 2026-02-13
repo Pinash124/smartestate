@@ -58,7 +58,7 @@ export default function AIRecommendPage() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-3">
-          <h1 className="text-3xl font-bold text-gray-900">🤖 Khuyến nghị AI</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Khuyến nghị AI</h1>
           {!user && (
             <div className="text-sm text-gray-500">
               Chế độ xem khách · <a href="/login" className="text-blue-600 hover:underline">Đăng nhập</a> để lưu hồ sơ
@@ -106,10 +106,10 @@ export default function AIRecommendPage() {
                           {type === 'apartment'
                             ? 'Chung cư'
                             : type === 'house'
-                            ? 'Nhà'
-                            : type === 'land'
-                            ? 'Đất'
-                            : 'Văn phòng'}
+                              ? 'Nhà'
+                              : type === 'land'
+                                ? 'Đất'
+                                : 'Văn phòng'}
                         </span>
                       </label>
                     ))}
@@ -181,7 +181,7 @@ export default function AIRecommendPage() {
                   disabled={loading}
                   className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition font-medium"
                 >
-                  {loading ? '🔄 Đang tìm kiếm...' : '🔍 Tìm gợi ý'}
+                  {loading ? 'Đang tìm kiếm...' : 'Tìm gợi ý'}
                 </button>
               </form>
             </div>
@@ -259,9 +259,9 @@ export default function AIRecommendPage() {
                           </div>
 
                           <div className="grid grid-cols-3 gap-2 text-sm text-gray-600 mb-3">
-                            <p>📍 {listing.city}</p>
-                            <p>📏 {listing.area} m²</p>
-                            {listing.bedrooms && <p>🛏️ {listing.bedrooms} phòng</p>}
+                            <p>{listing.city}</p>
+                            <p>{listing.area} m²</p>
+                            {listing.bedrooms && <p>{listing.bedrooms} phòng</p>}
                           </div>
 
                           {/* Reasons */}

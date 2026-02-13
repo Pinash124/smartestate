@@ -2,6 +2,8 @@ import React, { useState, useEffect, ReactNode } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { authService } from '@/services/auth'
 import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
+import AIFloatingWidget from '@/components/AIFloatingWidget'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/auth/LoginPage'
 import SignupPage from '@/pages/auth/SignupPage'
@@ -16,7 +18,7 @@ import BrokerRequestsPage from '@/pages/broker/RequestsPage'
 import AdminModerationPage from '@/pages/admin/ModerationPage'
 import AdminRevenuePage from '@/pages/admin/RevenuePage'
 import AdminUserManagementPage from '@/pages/admin/UserManagementPage'
-import UserAIRecommendPage from '@/pages/user/AIRecommendPage'
+
 import UserFavoritesPage from '@/pages/user/FavoritesPage'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 import TestPage from './TestPage'
@@ -87,9 +89,6 @@ function App() {
     <ErrorBoundary>
       <Router>
         <div className="min-h-screen bg-gray-50">
-          <div style={{ position: 'fixed', bottom: '10px', left: '10px', zIndex: 999, background: 'white', padding: '8px 12px', border: '1px solid red' }}>
-            <span>App loaded at {new Date().toLocaleTimeString()}</span>
-          </div>
           <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
           <Routes>
             {/* Test Route */}
@@ -108,8 +107,7 @@ function App() {
             {/* User Routes */}
             <Route path="/user/profile" element={<UserProfilePage />} />
             <Route path="/profile" element={<UserProfilePage />} />
-            <Route path="/user/ai-recommend" element={<UserAIRecommendPage />} />
-            <Route path="/recommend" element={<UserAIRecommendPage />} />
+
             <Route path="/user/favorites" element={<UserFavoritesPage />} />
             <Route path="/favorite" element={<UserFavoritesPage />} />
             <Route path="/favorites" element={<UserFavoritesPage />} />
@@ -128,6 +126,8 @@ function App() {
             <Route path="/admin/revenue" element={<AdminRevenuePage />} />
             <Route path="/admin/users" element={<AdminUserManagementPage />} />
           </Routes>
+          <Footer />
+          <AIFloatingWidget />
         </div>
       </Router>
     </ErrorBoundary>

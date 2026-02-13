@@ -12,14 +12,14 @@ export default function BrokerRequestsPage() {
   const [loading, setLoading] = useState(true)
 
   // Giả lập một ID broker để xem dữ liệu nếu chưa đăng nhập
-  const mockBrokerId = user?.id || 1 
+  const mockBrokerId = user?.id || 1
 
   useEffect(() => {
     // ĐÃ BỎ: Đoạn check redirect nếu không phải broker
 
     const loadListings = async () => {
       const allListings = await listingService.getAllListings()
-      
+
       // Lọc các tin có yêu cầu broker (sử dụng ID user hiện tại hoặc ID giả lập)
       const brokerListings = allListings.filter(
         (l: Listing) =>
@@ -64,21 +64,19 @@ export default function BrokerRequestsPage() {
         <div className="flex gap-2 mb-8">
           <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${
-              filter === 'all'
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${filter === 'all'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-100'
                 : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
-            }`}
+              }`}
           >
             Tất cả ({listings.length})
           </button>
           <button
             onClick={() => setFilter('pending')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${
-              filter === 'pending'
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${filter === 'pending'
                 ? 'bg-amber-500 text-white shadow-lg shadow-amber-100'
                 : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
-            }`}
+              }`}
           >
             Chờ xử lý (
             {listings.filter((l) => l.brokerRequests?.some((br) => br.brokerId === mockBrokerId && br.status === 'pending')).length}
@@ -86,11 +84,10 @@ export default function BrokerRequestsPage() {
           </button>
           <button
             onClick={() => setFilter('accepted')}
-            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${
-              filter === 'accepted'
+            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${filter === 'accepted'
                 ? 'bg-green-600 text-white shadow-lg shadow-green-100'
                 : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'
-            }`}
+              }`}
           >
             Đã chấp nhận (
             {listings.filter((l) => l.brokerRequests?.some((br) => br.brokerId === mockBrokerId && br.status === 'accepted')).length}
@@ -100,7 +97,7 @@ export default function BrokerRequestsPage() {
 
         {filteredListings.length === 0 ? (
           <div className="bg-white rounded-[32px] border border-dashed border-gray-200 p-20 text-center">
-            <span className="text-4xl mb-4 block">📩</span>
+            <span className="text-4xl mb-4 block">--</span>
             <p className="text-gray-400 font-medium">Hiện tại không có yêu cầu nào cho bạn.</p>
           </div>
         ) : (
@@ -128,30 +125,29 @@ export default function BrokerRequestsPage() {
                           <div>
                             <h3 className="text-xl font-bold text-gray-900">{listing.title}</h3>
                             <p className="text-sm text-gray-500 flex items-center mt-1">
-                              👤 Người bán: <span className="font-bold text-gray-700 ml-1">{listing.sellerName}</span>
+                              Người bán: <span className="font-bold text-gray-700 ml-1">{listing.sellerName}</span>
                             </p>
                           </div>
                           <span
-                            className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-                              request.status === 'pending'
+                            className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${request.status === 'pending'
                                 ? 'bg-amber-100 text-amber-700'
                                 : request.status === 'accepted'
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-red-100 text-red-700'
-                            }`}
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-red-100 text-red-700'
+                              }`}
                           >
                             {request.status === 'pending'
-                              ? '⏳ Chờ xử lý'
+                              ? 'Chờ xử lý'
                               : request.status === 'accepted'
-                              ? '✅ Đã chấp nhận'
-                              : '❌ Bị từ chối'}
+                                ? 'Đã chấp nhận'
+                                : 'Bị từ chối'}
                           </span>
                         </div>
 
                         <div className="flex flex-wrap gap-4 mt-4">
-                          <div className="bg-gray-50 px-3 py-2 rounded-xl text-sm font-bold text-blue-600">💰 {listing.price}</div>
-                          <div className="bg-gray-50 px-3 py-2 rounded-xl text-sm font-bold text-gray-600">📏 {listing.area} m²</div>
-                          <div className="bg-gray-50 px-3 py-2 rounded-xl text-sm font-bold text-gray-600">📍 {listing.city}</div>
+                          <div className="bg-gray-50 px-3 py-2 rounded-xl text-sm font-bold text-blue-600">{listing.price}</div>
+                          <div className="bg-gray-50 px-3 py-2 rounded-xl text-sm font-bold text-gray-600">{listing.area} m²</div>
+                          <div className="bg-gray-50 px-3 py-2 rounded-xl text-sm font-bold text-gray-600">{listing.city}</div>
                         </div>
                       </div>
 
@@ -159,7 +155,7 @@ export default function BrokerRequestsPage() {
                         <p className="text-xs text-gray-400 font-medium italic">
                           Yêu cầu nhận quản lý ngày: {new Date(request.requestedAt).toLocaleDateString('vi-VN')}
                         </p>
-                        
+
                         <div className="flex gap-2 w-full sm:w-auto">
                           {request.status === 'pending' ? (
                             <>

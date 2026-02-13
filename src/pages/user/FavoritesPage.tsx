@@ -117,9 +117,9 @@ export default function FavoritesPage() {
                   <p className="text-2xl font-bold text-blue-600 mb-3">{listing.price}</p>
 
                   <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-4">
-                    <p>📍 {listing.city}</p>
-                    <p>📏 {listing.area} m²</p>
-                    {listing.bedrooms && <p>🛏️ {listing.bedrooms} phòng</p>}
+                    <p>{listing.city}</p>
+                    <p>{listing.area} m²</p>
+                    {listing.bedrooms && <p>{listing.bedrooms} phòng</p>}
                   </div>
 
                   <div className="flex gap-2 text-xs text-gray-500 mb-3">

@@ -19,21 +19,21 @@ export interface User {
 }
 
 // Listing types
-export type ListingStatus = 
-  | 'draft' 
-  | 'pending_moderation' 
-  | 'approved' 
-  | 'active' 
-  | 'done' 
-  | 'cancelled' 
+export type ListingStatus =
+  | 'draft'
+  | 'pending_moderation'
+  | 'approved'
+  | 'active'
+  | 'done'
+  | 'cancelled'
   | 'rejected';
 
-export type ModerationStatus = 
-  | 'pending' 
-  | 'need_review' 
-  | 'auto_approved' 
-  | 'auto_rejected' 
-  | 'manually_approved' 
+export type ModerationStatus =
+  | 'pending'
+  | 'need_review'
+  | 'auto_approved'
+  | 'auto_rejected'
+  | 'manually_approved'
   | 'manually_rejected';
 
 export type PropertyType = 'apartment' | 'house' | 'land' | 'office';
@@ -186,6 +186,7 @@ export interface ApiListingDetail {
   maskedPhone?: string;
   images?: ApiListingImage[];
   responsibleUserId?: string;
+  sellerName?: string;
 }
 
 export interface ApiListingContactResponse {

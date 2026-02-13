@@ -32,7 +32,7 @@ export default function MyListingsPage() {
     void loadUserListings()
   }, [user])
 
-  // ✅ phải đặt ngoài return
+  // phải đặt ngoài return
   const filteredListings = listings.filter((l) => {
     const matchSearch = l.title.toLowerCase().includes(search.toLowerCase())
     const matchStatus = filterStatus === 'all' || l.status === filterStatus
@@ -130,14 +130,14 @@ export default function MyListingsPage() {
                     onClick={() => navigate(`/seller/edit-listing/${listing.id}`)}
                     className="bg-indigo-600 text-white px-3 py-1 rounded text-sm"
                   >
-                    ✏️ Sửa
+                    Sửa
                   </button>
 
                   <button
                     onClick={() => navigate(`/chat?listing=${listing.id}`)}
                     className="bg-purple-600 text-white px-3 py-1 rounded text-sm"
                   >
-                    💬 Chat
+                    Chat
                   </button>
 
                   <button
@@ -148,14 +148,14 @@ export default function MyListingsPage() {
                     }
                     className="bg-red-600 text-white px-3 py-1 rounded text-sm"
                   >
-                    🗑 Xoá
+                    Xoá
                   </button>
 
                   <button
                     onClick={() => navigate(`/listing/${listing.id}`)}
                     className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
                   >
-                    👁 Xem
+                    Xem
                   </button>
                 </div>
               </div>

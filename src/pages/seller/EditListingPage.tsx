@@ -213,7 +213,7 @@ export default function EditListingPage() {
                     onClick={() => handleRemoveImage(i)}
                     className="absolute top-1 right-1 bg-red-600 text-white w-5 h-5 rounded-full"
                   >
-                    ✕
+                    X
                   </button>
                 </div>
               ))}

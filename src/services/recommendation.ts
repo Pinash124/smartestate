@@ -24,7 +24,7 @@ export class AIRecommendationService {
     try {
       // Use search API with filters based on user preferences
       const listings = await listingService.fetchListings();
-      
+
       const scored = listings
         .map((listing) => ({
           listing,
@@ -115,25 +115,25 @@ export class AIRecommendationService {
     const reasons: RecommendationReason[] = [];
 
     if (preferences.cities?.includes(listing.city)) {
-      reasons.push({ icon: '📍', text: `Đúng thành phố ${listing.city}` });
+      reasons.push({ icon: '', text: `Đúng thành phố ${listing.city}` });
     }
 
     if (preferences.propertyTypes?.includes(listing.type)) {
       const typeLabel = this.getPropertyTypeLabel(listing.type);
-      reasons.push({ icon: '🏠', text: `Loại ${typeLabel} phù hợp` });
+      reasons.push({ icon: '', text: `Loại ${typeLabel} phù hợp` });
     }
 
     if (preferences.transaction === listing.transaction) {
       const label = listing.transaction === 'buy' ? 'Mua' : 'Cho thuê';
-      reasons.push({ icon: '💼', text: `Giao dịch ${label}` });
+      reasons.push({ icon: '', text: `Giao dịch ${label}` });
     }
 
     if (listing.images && listing.images.length >= 3) {
-      reasons.push({ icon: '📸', text: `Có ${listing.images.length} ảnh chất lượng` });
+      reasons.push({ icon: '', text: `Có ${listing.images.length} ảnh chất lượng` });
     }
 
     if (listing.description && listing.description.length >= 100) {
-      reasons.push({ icon: '📝', text: 'Mô tả chi tiết' });
+      reasons.push({ icon: '', text: 'Mô tả chi tiết' });
     }
 
     return reasons;

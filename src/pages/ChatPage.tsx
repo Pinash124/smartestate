@@ -90,7 +90,7 @@ export default function ChatPage() {
               onClick={() => navigate('/listings')}
               className="text-blue-100 hover:text-white"
             >
-              ✕
+              X
             </button>
           </div>
 
@@ -107,19 +107,17 @@ export default function ChatPage() {
                   className={`flex ${msg.senderId === user.id ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-xs px-4 py-2 rounded-lg ${
-                      msg.senderId === user.id
+                    className={`max-w-xs px-4 py-2 rounded-lg ${msg.senderId === user.id
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-200 text-gray-900'
-                    }`}
+                      }`}
                   >
                     <p className="text-sm">{msg.content}</p>
                     <p
-                      className={`text-xs mt-1 ${
-                        msg.senderId === user.id
+                      className={`text-xs mt-1 ${msg.senderId === user.id
                           ? 'text-blue-100'
                           : 'text-gray-600'
-                      }`}
+                        }`}
                     >
                       {new Date(msg.createdAt).toLocaleTimeString('vi-VN')}
                     </p>
