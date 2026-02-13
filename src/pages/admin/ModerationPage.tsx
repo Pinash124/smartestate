@@ -13,16 +13,16 @@ export default function ModerationPage() {
   const [rejectReason, setRejectReason] = useState('')
 
   // Hàm tải dữ liệu
-  const fetchData = () => {
-    const allListings = listingService.getAllListings()
+  const fetchData = async () => {
+    const allListings = await listingService.getAllListings()
     let filtered = allListings
 
     if (filter === 'need_review') {
-      filtered = filtered.filter((l) => l.moderation.status === 'need_review')
+      filtered = filtered.filter((l: Listing) => l.moderation.status === 'need_review')
     } else if (filter === 'approved') {
-      filtered = filtered.filter((l) => l.moderation.status.includes('approved'))
+      filtered = filtered.filter((l: Listing) => l.moderation.status.includes('approved'))
     } else if (filter === 'rejected') {
-      filtered = filtered.filter((l) => l.moderation.status.includes('rejected'))
+      filtered = filtered.filter((l: Listing) => l.moderation.status.includes('rejected'))
     }
 
     setListings(filtered)

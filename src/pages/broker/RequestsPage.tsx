@@ -17,17 +17,21 @@ export default function BrokerRequestsPage() {
   useEffect(() => {
     // ĐÃ BỎ: Đoạn check redirect nếu không phải broker
 
-    const allListings = listingService.getAllListings()
-    
-    // Lọc các tin có yêu cầu broker (sử dụng ID user hiện tại hoặc ID giả lập)
-    const brokerListings = allListings.filter(
-      (l) =>
-        l.brokerRequests &&
-        l.brokerRequests.some((br) => br.brokerId === mockBrokerId)
-    )
+    const loadListings = async () => {
+      const allListings = await listingService.getAllListings()
+      
+      // Lọc các tin có yêu cầu broker (sử dụng ID user hiện tại hoặc ID giả lập)
+      const brokerListings = allListings.filter(
+        (l: Listing) =>
+          l.brokerRequests &&
+          l.brokerRequests.some((br: any) => br.brokerId === mockBrokerId)
+      )
 
-    setListings(brokerListings)
-    setLoading(false)
+      setListings(brokerListings)
+      setLoading(false)
+    }
+
+    loadListings()
   }, [user, mockBrokerId])
 
   // ĐÃ BỎ: Đoạn return báo lỗi "Không có quyền truy cập"

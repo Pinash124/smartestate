@@ -48,8 +48,6 @@ export default function ChatPage() {
     try {
       const message = await chatService.sendMessage(
         conversation.id as string,
-        user.id,
-        user.name,
         newMessage
       )
 

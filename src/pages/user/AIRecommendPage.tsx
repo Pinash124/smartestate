@@ -4,7 +4,6 @@ import { recommendationService } from '../../services/recommendation'
 import { Listing, PropertyType } from '../../types'
 export default function AIRecommendPage() {
   const user = authService.getCurrentUser()
-  const previewUserId = user?.id ?? 'guest'
   const [transaction, setTransaction] = useState('buy')
   const [propertyTypes, setPropertyTypes] = useState<string[]>([])
   const [cities, setCities] = useState<string[]>([])
@@ -27,7 +26,7 @@ export default function AIRecommendPage() {
     )
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
@@ -42,10 +41,10 @@ export default function AIRecommendPage() {
       }
 
       // Submit preferences
-      recommendationService.submitPreferences(previewUserId, preferences)
+      await recommendationService.submitPreferences(preferences)
 
       // Get recommendations
-      const recs = recommendationService.getRecommendations(previewUserId, 10)
+      const recs = await recommendationService.getRecommendations(preferences, 10)
       setRecommendations(recs)
       setSubmitted(true)
     } catch (error) {

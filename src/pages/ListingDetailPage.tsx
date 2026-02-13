@@ -32,7 +32,7 @@ export default function ListingDetailPage() {
           setListing(found)
           setPhone(found.sellerPhone)
           if (currentUser) {
-            setIsFavorite(listingService.isFavorite(found.id, currentUser.id))
+            setIsFavorite(listingService.isFavorite(found.id))
           }
         } else {
           setError('Không tìm thấy tin đăng')
@@ -75,8 +75,10 @@ export default function ListingDetailPage() {
     if (!listing) return
     try {
       const realPhone = await listingService.revealPhone(listing.id)
-      setPhone(realPhone)
-      setShowPhone(true)
+      if (realPhone) {
+        setPhone(realPhone)
+        setShowPhone(true)
+      }
     } catch {
       alert('Không thể lấy số điện thoại')
     }
@@ -92,7 +94,7 @@ export default function ListingDetailPage() {
       return
     }
     if (listing && currentUser) {
-      listingService.reportListing(listing.id, currentUser.id, reportReason, reportNote)
+      listingService.reportListing(listing.id, reportReason, reportNote)
       alert('Báo cáo tin đăng thành công')
       setShowReportForm(false)
       setReportReason('')

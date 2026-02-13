@@ -102,8 +102,12 @@ export default function CreateListingPage() {
       }
 
       const created = await listingService.createListingRemote(payload)
-      alert('Tạo tin đăng thành công!')
-      navigate('/listing/' + created.id)
+      if (created) {
+        alert('Tạo tin đăng thành công!')
+        navigate('/listing/' + created.id)
+      } else {
+        setSubmitError('Có lỗi xảy ra khi tạo tin đăng')
+      }
     } catch {
       setSubmitError('Có lỗi xảy ra khi tạo tin đăng')
     } finally {

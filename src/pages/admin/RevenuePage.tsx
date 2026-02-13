@@ -27,19 +27,23 @@ export default function RevenuePage() {
 
   useEffect(() => {
     // Giả lập lấy dữ liệu thanh toán từ danh sách tin đăng đã duyệt
-    const allPayments: Payment[] = listingService.getAllListings()
-      .flatMap((l, index) => l.moderation.reviewedAt ? [{
-        id: index + 1,
-        type: 'post_listing' as const,
-        amount: 50000,
-        listingId: l.id,
-        userId: l.sellerId,
-        status: 'PAID' as const,
-        date: l.createdAt,
-        description: `Phí đăng tin: ${l.title}`,
-      }] : [])
+    const loadPayments = async () => {
+      const allPayments: Payment[] = (await listingService.getAllListings())
+        .flatMap((l: any, index: number) => l.moderation.reviewedAt ? [{
+          id: index + 1,
+          type: 'post_listing' as const,
+          amount: 50000,
+          listingId: l.id,
+          userId: l.sellerId,
+          status: 'PAID' as const,
+          date: l.createdAt,
+          description: `Phí đăng tin: ${l.title}`,
+        }] : [])
 
-    setPayments(allPayments)
+      setPayments(allPayments)
+    }
+
+    loadPayments()
   }, [])
 
   useEffect(() => {

@@ -1,10 +1,10 @@
 import { Listing, RecommendedListing, RecommendationReason, UserPreferences } from '@/types';
-import { apiRequest } from './api';
+
 import { listingService } from './listing';
 
 export class AIRecommendationService {
   // Store user preferences (could be saved to backend later)
-  async submitPreferences(userId: string, preferences: UserPreferences): Promise<void> {
+  async submitPreferences(preferences: UserPreferences): Promise<void> {
     try {
       // TODO: Add backend API endpoint for storing user preferences
       // await apiRequest(`/api/users/me/preferences`, {

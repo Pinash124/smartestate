@@ -33,30 +33,34 @@ export default function EditListingPage() {
   useEffect(() => {
     if (!id || !user) return
 
-    const found = listingService.getListing(id)
+    const loadListing = async () => {
+      const found = await listingService.fetchListing(id)
 
-    if (found && (found.sellerId === user.id || found.responsibleBrokerId === user.id)) {
-      setListing(found)
+      if (found && (found.sellerId === user.id || found.responsibleBrokerId === user.id)) {
+        setListing(found)
 
-      setFormData({
-        title: found.title,
-        type: found.type,
-        transaction: found.transaction,
-        price: found.price,
-        area: found.area.toString(),
-        bedrooms: found.bedrooms?.toString() || '',
-        bathrooms: found.bathrooms?.toString() || '',
-        city: found.city,
-        district: found.district,
-        address: found.address,
-        description: found.description,
-        images: found.images || [],
-      })
-    } else {
-      setError('Tin đăng không tồn tại hoặc bạn không có quyền chỉnh sửa')
+        setFormData({
+          title: found.title,
+          type: found.type,
+          transaction: found.transaction,
+          price: found.price,
+          area: found.area.toString(),
+          bedrooms: found.bedrooms?.toString() || '',
+          bathrooms: found.bathrooms?.toString() || '',
+          city: found.city,
+          district: found.district,
+          address: found.address,
+          description: found.description,
+          images: found.images || [],
+        })
+      } else {
+        setError('Tin đăng không tồn tại hoặc bạn không có quyền chỉnh sửa')
+      }
+
+      setLoading(false)
     }
 
-    setLoading(false)
+    loadListing()
   }, [id, user])
 
   /* ================= INPUT ================= */

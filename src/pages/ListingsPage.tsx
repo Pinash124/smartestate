@@ -49,7 +49,7 @@ export default function ListingsPage() {
 
   useEffect(() => {
     if (user) {
-      setFavoriteIds(listingService.getFavoriteIds(user.id))
+      setFavoriteIds(listingService.getFavoriteIds())
     } else {
       setFavoriteIds([])
     }

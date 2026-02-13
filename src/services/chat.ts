@@ -1,14 +1,7 @@
 import { ChatMessage, Conversation } from '../types/index'
 import { apiRequest } from './api'
 
-interface StartConversationRequest {
-  participantId: string
-  listingId: string
-}
 
-interface SendMessageRequest {
-  content: string
-}
 
 interface ConversationDto {
   id: string
@@ -102,7 +95,7 @@ class ChatService {
   /**
    * Get all conversations for current user
    */
-  async getUserConversations(userId: string): Promise<Conversation[]> {
+  async getUserConversations(): Promise<Conversation[]> {
     try {
       const response = await apiRequest<ConversationDto[]>(
         '/api/messages/conversations',
@@ -139,8 +132,6 @@ class ChatService {
    */
   async sendMessage(
     conversationId: string,
-    senderId: string,
-    senderName: string,
     content: string
   ): Promise<ChatMessage> {
     try {
@@ -211,7 +202,7 @@ class ChatService {
    */
   async getUnreadCount(userId: string): Promise<number> {
     try {
-      const conversations = await this.getUserConversations(userId)
+      const conversations = await this.getUserConversations()
       let unreadCount = 0
       
       for (const conv of conversations) {

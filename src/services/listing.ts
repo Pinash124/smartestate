@@ -6,7 +6,6 @@ import {
   ListingStatus,
   ModerationStatus,
   ModerationResult,
-  Payment,
   PaymentType,
 } from '@/types';
 import { API_BASE_URL, apiRequest, ApiError } from './api';
@@ -37,7 +36,7 @@ export const PAYMENT_TYPE: Record<string, PaymentType> = {
   TAKEOVER_FEE: 'takeover_fee',
 };
 
-const FAVORITE_KEY = 'favoriteListings';
+
 
 // AI Moderation Service
 export class AIModerationService {
@@ -122,9 +121,6 @@ export class AIModerationService {
 
 // Listing Service
 export class ListingService {
-  private moderationService = new AIModerationService();
-  private paymentService = new PaymentService();
-
   private resolveImageUrl(url: string): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;
@@ -226,13 +222,7 @@ export class ListingService {
     }
   }
 
-  private getFavoriteMap(): Record<string, string[]> {
-    return JSON.parse(localStorage.getItem(FAVORITE_KEY) || '{}') as Record<string, string[]>;
-  }
 
-  private saveFavoriteMap(map: Record<string, string[]>): void {
-    localStorage.setItem(FAVORITE_KEY, JSON.stringify(map));
-  }
 
   // API Methods
   async addFavorite(listingId: string): Promise<boolean> {
@@ -292,7 +282,86 @@ export class ListingService {
   setFavoriteCache(listingIds: string[]): void {
     this.favoriteCache = new Set(listingIds);
   }
+
+  getFavoriteIds(): string[] {
+    // Return favorite IDs from cache (in production, this would be fetched from a user preferences endpoint)
+    return Array.from(this.favoriteCache);
+  }
+
+  async reportListing(listingId: string, reason: string, note: string): Promise<void> {
+    try {
+      await apiRequest(`/api/listings/${listingId}/report`, {
+        method: 'POST',
+        body: { reason, note },
+        auth: true,
+      });
+    } catch (error) {
+      console.error('Error reporting listing:', error);
+      throw error;
+    }
+  }
+
+  // Admin Methods
+  async getAllListings(): Promise<Listing[]> {
+    try {
+      const data = await apiRequest<ApiListingDetail[]>(`/api/listings`, {
+        auth: true,
+      });
+      return Array.isArray(data) ? data.map((item) => this.mapApiListing(item)) : [];
+    } catch (error) {
+      console.error('Error fetching all listings:', error);
+      return [];
+    }
+  }
+
+  async approveListing(listingId: string, adminId: string): Promise<boolean> {
+    try {
+      await apiRequest(`/api/listings/${listingId}/approve`, {
+        method: 'PATCH',
+        body: { adminId },
+        auth: true,
+      });
+      return true;
+    } catch (error) {
+      console.error('Error approving listing:', error);
+      return false;
+    }
+  }
+
+  async rejectListing(listingId: string, adminId: string, reason?: string): Promise<boolean> {
+    try {
+      await apiRequest(`/api/listings/${listingId}/reject`, {
+        method: 'PATCH',
+        body: { adminId, reason },
+        auth: true,
+      });
+      return true;
+    } catch (error) {
+      console.error('Error rejecting listing:', error);
+      return false;
+    }
+  }
+
+  async updateListing(listing: Partial<Listing>): Promise<Listing | null> {
+    try {
+      if (!listing.id) throw new Error('Listing ID is required');
+      const data = await apiRequest<ApiListingDetail>(`/api/listings/${listing.id}`, {
+        method: 'PATCH',
+        body: listing,
+        auth: true,
+      });
+      return this.mapApiListing(data);
+    } catch (error) {
+      console.error('Error updating listing:', error);
+      return null;
+    }
+  }
+
+  // Deprecated: Use fetchListing instead
+  async getListing(id: string): Promise<Listing | null> {
+    return this.fetchListing(id);
+  }
 }
 
 export const listingService = new ListingService();
-export const paymentService = new PaymentService();
+
