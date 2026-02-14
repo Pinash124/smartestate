@@ -28,7 +28,12 @@ export default function LoginPage({ setIsAuthenticated }: LoginPageProps) {
       const result = await authService.login(email, password)
       if (result.success) {
         setIsAuthenticated(true)
-        navigate('/')
+        const user = authService.getCurrentUser()
+        if (user?.role === 'admin') {
+          navigate('/admin')
+        } else {
+          navigate('/')
+        }
       } else {
         setError(result.error?.message || 'Đăng nhập thất bại')
       }

@@ -8,8 +8,7 @@ interface SignupPageProps {
 }
 
 const ROLES: { value: UserRole; label: string; icon: string; desc: string }[] = [
-  { value: 'user', label: 'Người dùng', icon: 'U', desc: 'Tìm kiếm & mua bất động sản' },
-  { value: 'seller', label: 'Người bán', icon: 'S', desc: 'Đăng tin bán bất động sản' },
+  { value: 'user', label: 'Người dùng', icon: 'U', desc: 'Tìm kiếm & đăng tin bất động sản' },
   { value: 'broker', label: 'Môi giới', icon: 'B', desc: 'Quản lý & môi giới BĐS' },
 ]
 

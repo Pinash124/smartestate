@@ -1,5 +1,5 @@
 import { ApiAuthLoginResponse, ApiAuthRegisterRequest, ApiUserRole, User, UserRole } from '@/types';
-import { apiRequest, setToken } from './api';
+import { apiRequest, ApiError, setToken } from './api';
 
 const PERMISSIONS: Record<UserRole, string[]> = {
   guest: ['browse_listings', 'register', 'login'],
@@ -10,6 +10,11 @@ const PERMISSIONS: Record<UserRole, string[]> = {
     'report_listing',
     'send_messages',
     'reveal_phone',
+    'create_listing',
+    'manage_listings',
+    'edit_listing',
+    'request_broker',
+    'receive_offers',
   ],
   seller: [
     'browse_listings',
@@ -63,7 +68,7 @@ export class AuthService {
   private normalizeRole(role: ApiUserRole | UserRole): UserRole {
     const normalized = role.toString().toLowerCase();
     if (normalized === 'admin') return 'admin';
-    if (normalized === 'seller') return 'seller';
+    if (normalized === 'seller') return 'user'; // Seller is now merged into user
     if (normalized === 'broker') return 'broker';
     return 'user';
   }
@@ -77,7 +82,23 @@ export class AuthService {
 
       setToken(data.token);
 
-      const name = data.email.split('@')[0] || data.email;
+      // Default name from email
+      let name = data.email.split('@')[0] || data.email;
+
+      // Fetch user profile to get the actual displayName
+      try {
+        const profile = await apiRequest<{ displayName?: string; phone?: string }>('/api/users/me', {
+          method: 'GET',
+          auth: true,
+        });
+        if (profile.displayName) {
+          name = profile.displayName;
+        }
+      } catch {
+        // If profile fetch fails, continue with email-based name
+        console.warn('[Login] Could not fetch user profile, using email name');
+      }
+
       const role = this.normalizeRole(data.role);
       const user: User = {
         id: data.userId,
@@ -127,7 +148,7 @@ export class AuthService {
     name: string,
     email: string,
     password: string,
-    role: UserRole
+    _role: UserRole
   ): Promise<{ success: boolean; error?: AuthError }> {
     try {
       const payload: ApiAuthRegisterRequest = {
@@ -135,10 +156,13 @@ export class AuthService {
         password,
         displayName: name,
       };
+      console.log('[Register] Sending registration request:', { email, displayName: name });
       await apiRequest<void>('/api/auth/register', {
         method: 'POST',
         body: payload,
       });
+      console.log('[Register] Registration successful, attempting login...');
+
       // After successful registration, login
       const loginResult = await this.login(email, password);
 
@@ -157,28 +181,27 @@ export class AuthService {
 
       return loginResult;
     } catch (error) {
-      // If API is down, allow demo registration
-      console.warn('API unavailable, using demo registration mode');
+      console.error('[Register] Registration failed:', error);
 
-      const demoToken = 'demo_token_' + Date.now();
-      setToken(demoToken);
+      // Extract error message from API response
+      if (error instanceof ApiError) {
+        return {
+          success: false,
+          error: {
+            message: error.message || 'Đăng ký thất bại',
+            code: error.code,
+          },
+        };
+      }
 
-      const user: User = {
-        id: 'demo-user-' + Date.now(),
-        name,
-        email,
-        password: '',
-        role,
-        profile: {
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+      // Network error — API is unreachable
+      return {
+        success: false,
+        error: {
+          message: 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.',
+          code: 'NETWORK_ERROR',
         },
-        createdAt: new Date(),
-        updatedAt: new Date(),
       };
-
-      this.currentUser = user;
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      return { success: true };
     }
   }
 

@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { authService } from '@/services/auth';
 import { listingService } from '@/services/listing';
 import { fetchDashboardStats, AdminDashboardStats } from '@/services/adminService';
 import { Listing } from '@/types';
+import AdminSidebar from '@/components/AdminSidebar';
 
 export default function AdminDashboardPage() {
-  const location = useLocation();
-  const navigate = useNavigate();
   const currentUser = authService.getCurrentUser();
   const isAdmin = currentUser?.role === 'admin';
 
@@ -23,7 +22,6 @@ export default function AdminDashboardPage() {
         listingService.getAllListings(),
       ]);
       setStats(dashboardStats);
-      // Show 5 most recent listings
       setRecentListings(
         listings
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -33,13 +31,6 @@ export default function AdminDashboardPage() {
     };
     void loadData();
   }, []);
-
-  const menuItems = [
-    { name: 'Tổng quan', path: '/admin', icon: 'T' },
-    { name: 'Duyệt tin đăng', path: '/admin/moderation', icon: 'D' },
-    { name: 'Người dùng', path: '/admin/users', icon: 'N' },
-    { name: 'Doanh thu', path: '/admin/revenue', icon: '$' },
-  ];
 
   const statCards = stats
     ? [
@@ -71,76 +62,22 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // Sidebar
-  const Sidebar = () => (
-    <div className="w-64 bg-white h-screen fixed left-0 top-0 border-r border-gray-100 z-20 flex flex-col">
-      <div className="h-16 flex items-center px-6 border-b border-gray-100">
-        <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center mr-3">
-          <span className="text-white font-bold text-lg">S</span>
-        </div>
-        <span className="text-xl font-bold text-gray-800">Smart Admin</span>
-      </div>
-      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium group ${isActive
-                ? 'bg-amber-50 text-amber-600'
-                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-            >
-              <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold mr-4 ${isActive ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'}`}>
-                {item.icon}
-              </span>
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="p-4 border-t border-gray-100">
-        <button
-          onClick={() => { authService.logout(); navigate('/login'); }}
-          className="flex items-center text-gray-500 hover:text-red-600 transition px-4 py-2 w-full"
-        >
-          Đăng xuất
-        </button>
-      </div>
-    </div>
-  );
-
-  // Topbar
-  const Topbar = () => (
-    <header className="h-16 bg-white/80 backdrop-blur-sm fixed top-0 right-0 left-64 border-b border-gray-100 z-10 px-6 flex items-center justify-between">
-      <div>
-        <h2 className="text-lg font-bold text-gray-800">Tổng quan</h2>
-      </div>
-      <div className="flex items-center gap-3">
-        <span className="flex items-center gap-1.5 text-xs text-gray-400">
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-          API Connected
-        </span>
-        <div className="flex items-center gap-3 pl-4 border-l border-gray-100">
-          <div className="w-8 h-8 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center font-bold text-amber-600 text-sm">
-            {currentUser?.name?.charAt(0).toUpperCase() || 'A'}
-          </div>
-          <div className="text-sm hidden md:block">
-            <p className="font-bold text-gray-800 leading-none">{currentUser?.name || 'Admin'}</p>
-            <p className="text-gray-400 text-xs">Quản trị viên</p>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar />
-      <Topbar />
+      <AdminSidebar />
 
-      <main className="ml-64 pt-16 min-h-screen">
+      <main className="ml-64 pt-0 min-h-screen">
+        {/* Topbar */}
+        <header className="h-16 bg-white/80 backdrop-blur-sm sticky top-0 border-b border-gray-100 z-10 px-6 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-gray-800">Tổng quan</h2>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1.5 text-xs text-gray-400">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              API Connected
+            </span>
+          </div>
+        </header>
+
         <div className="p-8 max-w-7xl mx-auto">
           {/* Welcome Banner */}
           <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 p-8 rounded-2xl mb-8 relative overflow-hidden border border-amber-100/50">
@@ -160,7 +97,6 @@ export default function AdminDashboardPage() {
                 Duyệt tin đăng →
               </Link>
             </div>
-
           </div>
 
           {/* Stats Grid */}

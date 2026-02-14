@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { User, UserRole } from '@/types'
 import { authService } from '@/services/auth'
 import { fetchAllUsers, updateUserRole, deleteUser } from '@/services/adminService'
+import AdminSidebar from '@/components/AdminSidebar'
 
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([])
@@ -104,34 +105,11 @@ export default function UserManagementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-white border-r border-gray-100 fixed h-full z-20">
-        <div className="h-16 flex items-center px-6 border-b border-gray-100">
-          <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex items-center justify-center mr-3">
-            <span className="text-white font-bold text-lg">S</span>
-          </div>
-          <span className="text-xl font-bold text-gray-800">Smart Admin</span>
-        </div>
-        <nav className="p-4 space-y-2">
-          <Link to="/admin" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            Tổng quan
-          </Link>
-          <Link to="/admin/moderation" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            Duyệt tin đăng
-          </Link>
-          <Link to="/admin/users" className="flex items-center px-4 py-3 bg-amber-50 text-amber-600 rounded-xl transition font-bold">
-            Người dùng
-          </Link>
-          <Link to="/admin/revenue" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            Doanh thu
-          </Link>
-        </nav>
-      </aside>
+    <div className="min-h-screen bg-gray-50">
+      <AdminSidebar />
 
-      {/* MAIN CONTENT */}
-      <main className="ml-64 flex-1">
-        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10">
+      <main className="ml-64 min-h-screen">
+        <header className="h-16 bg-white/80 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10">
           <h2 className="text-lg font-bold text-gray-800">Quản lý thành viên</h2>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />

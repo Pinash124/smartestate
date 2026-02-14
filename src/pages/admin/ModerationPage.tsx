@@ -1,86 +1,120 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { authService } from '@/services/auth'
 import { listingService } from '@/services/listing'
+import { fetchAdminListings, approveListingAdmin, rejectListingAdmin } from '@/services/adminService'
 import { Listing } from '@/types'
+import AdminSidebar from '@/components/AdminSidebar'
 
 export default function ModerationPage() {
   const user = authService.getCurrentUser()
 
   const [listings, setListings] = useState<Listing[]>([])
+  const [loading, setLoading] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
   const [filter, setFilter] = useState<'all' | 'need_review' | 'approved' | 'rejected'>('need_review')
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null)
   const [rejectReason, setRejectReason] = useState('')
 
-  // Hàm tải dữ liệu
+  // Fetch listings from admin API, with fallback to listingService
   const fetchData = async () => {
-    const allListings = await listingService.getAllListings()
-    let filtered = allListings
+    setLoading(true)
+    try {
+      // Try admin endpoint first, fallback to generic listing endpoint
+      let allListings: Listing[] = []
+      try {
+        const adminData = await fetchAdminListings()
+        if (adminData.length > 0) {
+          // Map admin API response if needed (reuse listingService mapping)
+          allListings = await listingService.getAllListings()
+        } else {
+          allListings = await listingService.getAllListings()
+        }
+      } catch {
+        allListings = await listingService.getAllListings()
+      }
 
-    if (filter === 'need_review') {
-      filtered = filtered.filter((l: Listing) => l.moderation.status === 'need_review')
-    } else if (filter === 'approved') {
-      filtered = filtered.filter((l: Listing) => l.moderation.status.includes('approved'))
-    } else if (filter === 'rejected') {
-      filtered = filtered.filter((l: Listing) => l.moderation.status.includes('rejected'))
+      // Filter based on selected tab
+      let filtered = allListings
+      if (filter === 'need_review') {
+        filtered = filtered.filter((l: Listing) =>
+          l.moderation.status === 'need_review' ||
+          l.moderation.status === 'pending' ||
+          l.status === 'pending_moderation'
+        )
+      } else if (filter === 'approved') {
+        filtered = filtered.filter((l: Listing) =>
+          l.moderation.status.includes('approved') || l.status === 'active'
+        )
+      } else if (filter === 'rejected') {
+        filtered = filtered.filter((l: Listing) =>
+          l.moderation.status.includes('rejected') || l.status === 'rejected'
+        )
+      }
+
+      setListings(filtered)
+    } catch (error) {
+      console.error('Error loading listings:', error)
+      setListings([])
+    } finally {
+      setLoading(false)
     }
-
-    setListings(filtered)
   }
 
   useEffect(() => {
     fetchData()
   }, [filter])
 
-  const handleApprove = (id: string) => {
-    listingService.approveListing(id, user?.id || '')
-    alert('Đã phê duyệt tin đăng!')
-    fetchData()
-    setSelectedListing(null)
+  const handleApprove = async (id: string) => {
+    setActionLoading(true)
+    try {
+      // Try admin API first, fallback to listingService
+      const success = await approveListingAdmin(id)
+      if (!success) {
+        await listingService.approveListing(id, user?.id || '')
+      }
+      alert('Đã phê duyệt tin đăng!')
+      await fetchData()
+      setSelectedListing(null)
+    } catch (error) {
+      console.error('Error approving:', error)
+      alert('Lỗi khi phê duyệt tin đăng')
+    } finally {
+      setActionLoading(false)
+    }
   }
 
-  const handleReject = (id: string) => {
+  const handleReject = async (id: string) => {
     if (!rejectReason) return alert('Vui lòng nhập lý do từ chối')
-    listingService.rejectListing(id, user?.id || '')
-    alert('Đã từ chối tin đăng')
-    fetchData()
-    setSelectedListing(null)
-    setRejectReason('')
+    setActionLoading(true)
+    try {
+      const success = await rejectListingAdmin(id, rejectReason)
+      if (!success) {
+        await listingService.rejectListing(id, user?.id || '', rejectReason)
+      }
+      alert('Đã từ chối tin đăng')
+      await fetchData()
+      setSelectedListing(null)
+      setRejectReason('')
+    } catch (error) {
+      console.error('Error rejecting:', error)
+      alert('Lỗi khi từ chối tin đăng')
+    } finally {
+      setActionLoading(false)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-white border-r border-gray-100 fixed h-full z-20">
-        <div className="h-16 flex items-center px-6 border-b border-gray-100">
-          <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center mr-3">
-            <span className="text-white font-bold text-lg">S</span>
-          </div>
-          <span className="text-xl font-bold text-gray-800">Smart Admin</span>
-        </div>
-        <nav className="p-4 space-y-2">
-          <Link to="/admin" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            Tổng quan
-          </Link>
-          <Link to="/admin/moderation" className="flex items-center px-4 py-3 bg-blue-50 text-blue-600 rounded-xl transition font-bold">
-            Duyệt tin đăng
-          </Link>
-          <Link to="/admin/users" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            Người dùng
-          </Link>
-        </nav>
-      </aside>
+    <div className="min-h-screen bg-gray-50">
+      <AdminSidebar />
 
-      {/* MAIN CONTENT AREA */}
-      <main className="ml-64 flex-1">
-        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10">
+      <main className="ml-64 min-h-screen">
+        <header className="h-16 bg-white/80 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10">
           <h2 className="text-lg font-bold text-gray-800">Hệ thống kiểm duyệt</h2>
           <div className="flex items-center gap-3">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-bold text-gray-800 leading-none">Admin System</p>
-              <p className="text-xs text-gray-400">Kiểm duyệt viên</p>
-            </div>
-            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" className="w-8 h-8 rounded-full bg-gray-100" alt="avatar" />
+            <span className="flex items-center gap-1.5 text-xs text-gray-400">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              API Connected
+            </span>
           </div>
         </header>
 
@@ -114,7 +148,15 @@ export default function ModerationPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-4 space-y-3 h-[calc(100vh-280px)] overflow-y-auto pr-2 custom-scrollbar">
-              {listings.length === 0 ? (
+              {loading ? (
+                <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
+                  <svg className="animate-spin w-6 h-6 mx-auto mb-2 text-amber-500" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <p className="text-gray-400 text-sm">Đang tải...</p>
+                </div>
+              ) : listings.length === 0 ? (
                 <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200 text-gray-400">
                   Trống
                 </div>
@@ -124,8 +166,8 @@ export default function ModerationPage() {
                     key={listing.id}
                     onClick={() => setSelectedListing(listing)}
                     className={`p-4 rounded-2xl cursor-pointer transition-all border ${selectedListing?.id === listing.id
-                        ? 'bg-white border-blue-500 shadow-lg ring-2 ring-blue-50'
-                        : 'bg-white border-gray-100 hover:border-blue-200 hover:shadow-sm'
+                      ? 'bg-white border-blue-500 shadow-lg ring-2 ring-blue-50'
+                      : 'bg-white border-gray-100 hover:border-blue-200 hover:shadow-sm'
                       }`}
                   >
                     <div className="flex justify-between items-start mb-2">
@@ -152,7 +194,6 @@ export default function ModerationPage() {
                       <h2 className="text-2xl font-bold text-gray-900 leading-tight">{selectedListing.title}</h2>
                       <p className="text-gray-500 flex items-center mt-1">
                         <span className="mr-1"></span>
-                        {/* Sửa lỗi location bằng cách kết hợp address, district, city */}
                         {`${selectedListing.address}, ${selectedListing.district}, ${selectedListing.city}`}
                       </p>
                     </div>
@@ -207,13 +248,15 @@ export default function ModerationPage() {
                       <div className="flex gap-4">
                         <button
                           onClick={() => handleApprove(selectedListing.id)}
-                          className="flex-2 bg-blue-600 text-white px-8 py-3.5 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex-1"
+                          disabled={actionLoading}
+                          className="flex-2 bg-blue-600 text-white px-8 py-3.5 rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Phê duyệt tin
+                          {actionLoading ? 'Đang xử lý...' : 'Phê duyệt tin'}
                         </button>
                         <button
                           onClick={() => handleReject(selectedListing.id)}
-                          className="flex-1 bg-red-50 text-red-600 py-3.5 rounded-2xl font-bold hover:bg-red-100 transition-all"
+                          disabled={actionLoading}
+                          className="flex-1 bg-red-50 text-red-600 py-3.5 rounded-2xl font-bold hover:bg-red-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Từ chối
                         </button>

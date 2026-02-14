@@ -156,6 +156,7 @@ export type ApiUserRole = 'Admin' | 'Seller' | 'Broker' | 'User';
 export interface ApiAuthLoginResponse {
   userId: string;
   email: string;
+  displayName?: string;
   role: ApiUserRole;
   token: string;
 }
@@ -187,6 +188,14 @@ export interface ApiListingDetail {
   images?: ApiListingImage[];
   responsibleUserId?: string;
   sellerName?: string;
+  status?: string;
+  propertyType?: number;
+  areaM2?: number;
+  address?: ApiAddress;
+  bedrooms?: number;
+  bathrooms?: number;
+  transactionType?: string;
+  createdAt?: string;
 }
 
 export interface ApiListingContactResponse {

@@ -7,6 +7,8 @@ import {
   ModerationStatus,
   ModerationResult,
   PaymentType,
+  PropertyType,
+  TransactionType,
 } from '@/types';
 import { API_BASE_URL, apiRequest, ApiError } from './api';
 import { authService } from './auth';
@@ -38,7 +40,12 @@ export const PAYMENT_TYPE: Record<string, PaymentType> = {
   TAKEOVER_FEE: 'takeover_fee',
 };
 
-
+const PROPERTY_TYPE_MAP: Record<number, PropertyType> = {
+  0: 'office',
+  1: 'apartment',
+  2: 'house',
+  3: 'land',
+};
 
 // AI Moderation Service
 export class AIModerationService {
@@ -155,6 +162,36 @@ export class ListingService {
       name = listing.responsibleUserId ? `User ${listing.responsibleUserId.slice(0, 6)}` : 'Người đăng';
     }
 
+    // Map backend status to frontend ListingStatus
+    let frontendStatus: ListingStatus = LISTING_STATUS.ACTIVE;
+    if (listing.status) {
+      const statusLower = listing.status.toLowerCase();
+      if (statusLower.includes('pending') || statusLower.includes('review')) {
+        frontendStatus = LISTING_STATUS.PENDING_MODERATION;
+      } else if (statusLower.includes('reject')) {
+        frontendStatus = LISTING_STATUS.REJECTED;
+      } else if (statusLower.includes('draft')) {
+        frontendStatus = LISTING_STATUS.DRAFT;
+      } else if (statusLower.includes('done') || statusLower.includes('complete')) {
+        frontendStatus = LISTING_STATUS.DONE;
+      } else if (statusLower.includes('cancel')) {
+        frontendStatus = LISTING_STATUS.CANCELLED;
+      } else {
+        frontendStatus = LISTING_STATUS.ACTIVE;
+      }
+    }
+
+    // Determine moderation decision based on backend status
+    let decision: 'APPROVED' | 'REJECTED' | 'NEED_REVIEW' = 'APPROVED';
+    let moderationStatus: ModerationStatus = MODERATION_STATUS.AUTO_APPROVED;
+    if (frontendStatus === LISTING_STATUS.REJECTED) {
+      decision = 'REJECTED';
+      moderationStatus = MODERATION_STATUS.MANUALLY_REJECTED;
+    } else if (frontendStatus === LISTING_STATUS.PENDING_MODERATION) {
+      decision = 'NEED_REVIEW';
+      moderationStatus = MODERATION_STATUS.PENDING;
+    }
+
     return {
       id: listing.id,
       sellerId: listing.responsibleUserId || '',
@@ -162,27 +199,27 @@ export class ListingService {
       sellerPhone: listing.maskedPhone || '',
       responsibleBrokerId: listing.responsibleUserId,
       title: listing.title,
-      type: 'apartment',
-      transaction: 'buy',
+      type: PROPERTY_TYPE_MAP[listing.propertyType ?? 1] || 'apartment',
+      transaction: (listing.transactionType as TransactionType) || 'buy',
       price: this.formatPrice(listing.priceAmount, listing.priceCurrency || 'VND'),
-      area: 0,
-      bedrooms: undefined,
-      bathrooms: undefined,
-      city: '',
-      district: '',
-      address: '',
+      area: listing.areaM2 ?? 0,
+      bedrooms: listing.bedrooms,
+      bathrooms: listing.bathrooms,
+      city: listing.address?.city || '',
+      district: listing.address?.district || '',
+      address: listing.address?.street || '',
       description: listing.description || '',
       images: (listing.images || []).map((img) => this.resolveImageUrl(img.url)),
-      status: LISTING_STATUS.ACTIVE,
+      status: frontendStatus,
       moderation: {
-        status: MODERATION_STATUS.AUTO_APPROVED,
-        decision: 'APPROVED',
+        status: moderationStatus,
+        decision,
         riskScore: 0,
         flags: [],
         suggestions: [],
         reviewedAt: new Date(),
       },
-      createdAt: new Date(),
+      createdAt: listing.createdAt ? new Date(listing.createdAt) : new Date(),
     };
   }
 
@@ -262,7 +299,7 @@ export class ListingService {
 
   async removeFavorite(listingId: string): Promise<boolean> {
     try {
-      await apiRequest(`/ api / users / me / favorites / ${listingId} `, {
+      await apiRequest(`/api/users/me/favorites/${listingId}`, {
         method: 'DELETE',
         auth: true,
       });
@@ -283,7 +320,7 @@ export class ListingService {
 
   async getFavoriteListings(page: number = 1, pageSize: number = 20): Promise<Listing[]> {
     try {
-      const response = await apiRequest<any>(`/ api / users / me / favorites ? page = ${page}& pageSize=${pageSize} `, {
+      const response = await apiRequest<any>(`/api/users/me/favorites?page=${page}&pageSize=${pageSize}`, {
         auth: true,
       });
       const items = response?.items || response || [];
@@ -312,7 +349,7 @@ export class ListingService {
 
   async reportListing(listingId: string, reason: string, note: string): Promise<void> {
     try {
-      await apiRequest(`/ api / listings / ${listingId}/report`, {
+      await apiRequest(`/api/listings/${listingId}/report`, {
         method: 'POST',
         body: { reason, note },
         auth: true,
@@ -338,7 +375,7 @@ export class ListingService {
 
   async approveListing(listingId: string, adminId: string): Promise<boolean> {
     try {
-      await apiRequest(`/api/listings/${listingId} / approve`, {
+      await apiRequest(`/api/listings/${listingId}/approve`, {
         method: 'PATCH',
         body: { adminId },
         auth: true,
@@ -352,7 +389,7 @@ export class ListingService {
 
   async rejectListing(listingId: string, adminId: string, reason?: string): Promise<boolean> {
     try {
-      await apiRequest(`/ api / listings / ${listingId}/reject`, {
+      await apiRequest(`/api/listings/${listingId}/reject`, {
         method: 'PATCH',
         body: { adminId, reason },
         auth: true,

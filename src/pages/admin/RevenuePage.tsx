@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { listingService } from '@/services/listing'
 import { Payment } from '@/types'
+import AdminSidebar from '@/components/AdminSidebar'
 
 export default function RevenuePage() {
   const [payments, setPayments] = useState<Payment[]>([])
@@ -9,14 +9,6 @@ export default function RevenuePage() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [paymentType, setPaymentType] = useState<'all' | 'post_listing' | 'push_listing' | 'broker_fee' | 'takeover_fee'>('all')
-
-  // Vô hiệu hóa kiểm tra quyền để xem nhanh giao diện (Bật lại khi deploy)
-  /*
-  const role = authService.getCurrentRole()
-  if (role !== 'admin') {
-    return <div className="p-20 text-center text-red-500">Bạn không có quyền xem dữ liệu tài chính.</div>
-  }
-  */
 
   const paymentTypeLabels: Record<string, string> = {
     post_listing: 'Đăng tin',
@@ -26,7 +18,6 @@ export default function RevenuePage() {
   }
 
   useEffect(() => {
-    // Giả lập lấy dữ liệu thanh toán từ danh sách tin đăng đã duyệt
     const loadPayments = async () => {
       const allPayments: Payment[] = (await listingService.getAllListings())
         .flatMap((l: any, index: number) => l.moderation.reviewedAt ? [{
@@ -86,37 +77,17 @@ export default function RevenuePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* SIDEBAR */}
-      <aside className="w-64 bg-white border-r border-gray-100 fixed h-full z-20">
-        <div className="h-16 flex items-center px-6 border-b border-gray-100">
-          <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center mr-3">
-            <span className="text-white font-bold text-lg">S</span>
-          </div>
-          <span className="text-xl font-bold text-gray-800">Smart Admin</span>
-        </div>
-        <nav className="p-4 space-y-2">
-          <Link to="/admin" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            Tổng quan
-          </Link>
-          <Link to="/admin/moderation" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            Duyệt tin đăng
-          </Link>
-          <Link to="/admin/users" className="flex items-center px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl transition font-medium">
-            Người dùng
-          </Link>
-          <Link to="/admin/revenue" className="flex items-center px-4 py-3 bg-blue-50 text-blue-600 rounded-xl transition font-bold">
-            Doanh thu
-          </Link>
-        </nav>
-      </aside>
+    <div className="min-h-screen bg-gray-50">
+      <AdminSidebar />
 
-      {/* MAIN CONTENT */}
-      <main className="ml-64 flex-1">
-        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10">
+      <main className="ml-64 min-h-screen">
+        <header className="h-16 bg-white/80 backdrop-blur-sm border-b border-gray-100 flex items-center justify-between px-8 sticky top-0 z-10">
           <h2 className="text-lg font-bold text-gray-800">Báo cáo tài chính</h2>
-          <div className="flex bg-gray-50 rounded-full px-4 py-1.5 border border-gray-100 items-center">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-tighter">Finance Hub</span>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1.5 text-xs text-gray-400">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              API Connected
+            </span>
           </div>
         </header>
 

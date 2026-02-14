@@ -43,19 +43,19 @@ export default function CreateListingPage() {
     images: [] as string[],
   })
 
-  // Auth check
-  if (!user || (user.role !== 'seller' && user.role !== 'broker')) {
+  // Auth check — any logged-in user can create listings
+  if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md">
           <AlertCircleIcon className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Quyền truy cập bị từ chối</h2>
-          <p className="text-gray-600 mb-6">Tài khoản của bạn không có quyền đăng tin. Vui lòng nâng cấp tài khoản hoặc liên hệ hỗ trợ.</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Vui lòng đăng nhập</h2>
+          <p className="text-gray-600 mb-6">Bạn cần đăng nhập để đăng tin bất động sản.</p>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/login')}
             className="bg-gray-900 text-white px-6 py-2 rounded-full hover:bg-gray-800 transition"
           >
-            Về trang chủ
+            Đăng nhập
           </button>
         </div>
       </div>

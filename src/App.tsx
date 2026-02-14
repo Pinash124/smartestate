@@ -1,5 +1,5 @@
 import React, { useState, useEffect, ReactNode } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom'
 import { authService } from '@/services/auth'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -66,6 +66,74 @@ class ErrorBoundary extends React.Component<{ children: ReactNode }, { hasError:
   }
 }
 
+function AppContent({ isAuthenticated, setIsAuthenticated }: { isAuthenticated: boolean; setIsAuthenticated: (v: boolean) => void }) {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const isAdminRoute = location.pathname.startsWith('/admin')
+  const user = authService.getCurrentUser()
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'admin' && !isAdminRoute) {
+        // Admin trying to access non-admin page -> redirect to dashboard
+        navigate('/admin')
+      } else if (user.role !== 'admin' && isAdminRoute) {
+        // Non-admin trying to access admin page -> redirect home
+        navigate('/')
+      }
+    }
+  }, [isAuthenticated, user, isAdminRoute, navigate])
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {!isAdminRoute && <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />}
+      <Routes>
+        {/* Test Route */}
+        <Route path="/test-css" element={<TestPage />} />
+
+        {/* Public Routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
+        <Route path="/signup" element={<SignupPage setIsAuthenticated={setIsAuthenticated} />} />
+        <Route path="/listings" element={<ListingsPage />} />
+        <Route path="/listing/:id" element={<ListingDetailPage />} />
+
+        {/* Chat Route */}
+        <Route path="/messages/:id" element={<ChatPage />} />
+
+        {/* User Routes */}
+        <Route path="/user/profile" element={<UserProfilePage />} />
+        <Route path="/profile" element={<UserProfilePage />} />
+
+        <Route path="/user/favorites" element={<UserFavoritesPage />} />
+        <Route path="/favorite" element={<UserFavoritesPage />} />
+        <Route path="/favorites" element={<UserFavoritesPage />} />
+
+        {/* Seller Routes (kept for backward compatibility) */}
+        <Route path="/seller/create-listing" element={<SellerCreateListingPage />} />
+        <Route path="/seller/my-listings" element={<SellerMyListingsPage />} />
+        <Route path="/seller/:id/edit" element={<SellerEditListingPage />} />
+
+        {/* User Listing Routes (new unified paths) */}
+        <Route path="/create-listing" element={<SellerCreateListingPage />} />
+        <Route path="/my-listings" element={<SellerMyListingsPage />} />
+        <Route path="/edit-listing/:id" element={<SellerEditListingPage />} />
+
+        {/* Broker Routes */}
+        <Route path="/broker/requests" element={<BrokerRequestsPage />} />
+
+        {/* Admin Routes — standalone layout, no Navbar/Footer */}
+        <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route path="/admin/moderation" element={<AdminModerationPage />} />
+        <Route path="/admin/revenue" element={<AdminRevenuePage />} />
+        <Route path="/admin/users" element={<AdminUserManagementPage />} />
+      </Routes>
+      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <AIFloatingWidget />}
+    </div>
+  )
+}
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try {
@@ -88,47 +156,7 @@ function App() {
   return (
     <ErrorBoundary>
       <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
-          <Routes>
-            {/* Test Route */}
-            <Route path="/test-css" element={<TestPage />} />
-
-            {/* Public Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
-            <Route path="/signup" element={<SignupPage setIsAuthenticated={setIsAuthenticated} />} />
-            <Route path="/listings" element={<ListingsPage />} />
-            <Route path="/listing/:id" element={<ListingDetailPage />} />
-
-            {/* Chat Route */}
-            <Route path="/messages/:id" element={<ChatPage />} />
-
-            {/* User Routes */}
-            <Route path="/user/profile" element={<UserProfilePage />} />
-            <Route path="/profile" element={<UserProfilePage />} />
-
-            <Route path="/user/favorites" element={<UserFavoritesPage />} />
-            <Route path="/favorite" element={<UserFavoritesPage />} />
-            <Route path="/favorites" element={<UserFavoritesPage />} />
-
-            {/* Seller Routes */}
-            <Route path="/seller/create-listing" element={<SellerCreateListingPage />} />
-            <Route path="/seller/my-listings" element={<SellerMyListingsPage />} />
-            <Route path="/seller/:id/edit" element={<SellerEditListingPage />} />
-
-            {/* Broker Routes */}
-            <Route path="/broker/requests" element={<BrokerRequestsPage />} />
-
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminDashboardPage />} />
-            <Route path="/admin/moderation" element={<AdminModerationPage />} />
-            <Route path="/admin/revenue" element={<AdminRevenuePage />} />
-            <Route path="/admin/users" element={<AdminUserManagementPage />} />
-          </Routes>
-          <Footer />
-          <AIFloatingWidget />
-        </div>
+        <AppContent isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
       </Router>
     </ErrorBoundary>
   )

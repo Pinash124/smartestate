@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { authService } from '@/services/auth'
 
@@ -13,11 +13,24 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
   const user = authService.getCurrentUser()
   const role = authService.getCurrentRole()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleLogout = () => {
     authService.logout()
     setIsAuthenticated(false)
     setMobileOpen(false)
+    setUserMenuOpen(false)
     navigate('/')
   }
 
@@ -34,63 +47,62 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
       ? 'after:absolute after:bottom-[-4px] after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:bg-amber-500 after:rounded-full'
       : ''
 
-  const mobileLinkClass = (path: string) =>
-    `block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isActive(path)
-      ? 'bg-amber-50 text-amber-600'
-      : 'text-gray-700 hover:bg-gray-50 hover:text-amber-600'
-    }`
-
-  const renderMenuItems = (mobile = false) => {
-    const cls = mobile ? mobileLinkClass : (p: string) => `${linkClass(p)} ${activeDot(p)}`
-
+  /* ─── Main Menu Items (Desktop) ─── */
+  const renderMenuItems = () => {
+    // Only show general public links here. User-specific links are in the user dropdown.
     const items: { to: string; label: string; highlight?: boolean }[] = [
       { to: '/', label: 'Trang chủ' },
+      { to: '/listings', label: 'Tin đăng' }, // Keep this public
     ]
 
-    switch (role) {
-      case 'admin':
-        items.push(
-          { to: '/admin', label: 'Bảng điều khiển', highlight: true },
-          { to: '/admin/moderation', label: 'Duyệt tin' },
-          { to: '/admin/revenue', label: 'Doanh thu' },
-          { to: '/admin/users', label: 'Người dùng' },
-        )
-        break
-      case 'broker':
-        items.push(
-          { to: '/listings', label: 'Tin đăng' },
-          { to: '/broker/requests', label: 'Yêu cầu takeover' },
-        )
-        break
-      case 'seller':
-        items.push(
-          { to: '/seller/create-listing', label: 'Đăng tin mới' },
-          { to: '/seller/my-listings', label: 'Tin của tôi' },
-        )
-        break
-      case 'user':
-        items.push(
-          { to: '/listings', label: 'Tin đăng' },
-          { to: '/favorites', label: 'Đã lưu' },
-        )
-        break
-      default:
-        items.push(
-          { to: '/listings', label: 'Tin đăng' },
-          { to: '/favorites', label: 'Đã lưu' },
-        )
+    // Admin still gets a direct link as it's a separate dashboard
+    if (role === 'admin') {
+      items.push({ to: '/admin', label: 'Bảng điều khiển', highlight: true })
+    }
+
+    if (role === 'broker') {
+      items.push({ to: '/broker/requests', label: 'Yêu cầu takeover' })
     }
 
     return items.map((item) => (
       <Link
         key={item.to}
         to={item.to}
+        className={`${linkClass(item.to)} ${activeDot(item.to)} ${item.highlight ? 'text-amber-600 font-bold' : ''}`}
+      >
+        {item.label}
+      </Link>
+    ))
+  }
+
+  /* ─── Mobile Menu Items ─── */
+  const renderMobileMenuItems = () => {
+    const items: { to: string; label: string }[] = [
+      { to: '/', label: 'Trang chủ' },
+      { to: '/listings', label: 'Tin đăng' },
+    ]
+
+    if (role === 'admin') items.push({ to: '/admin', label: 'Bảng điều khiển' })
+    if (role === 'broker') items.push({ to: '/broker/requests', label: 'Yêu cầu takeover' })
+
+    // In mobile, we just list everything since there is no dropdown hover
+    if (isAuthenticated) {
+      items.push(
+        { to: '/create-listing', label: 'Đăng tin mới' },
+        { to: '/my-listings', label: 'Tin của tôi' },
+        { to: '/favorites', label: 'Đã lưu' },
+      )
+    }
+
+    return items.map(item => (
+      <Link
+        key={item.to}
+        to={item.to}
         onClick={() => setMobileOpen(false)}
-        className={
-          item.highlight && !mobile
-            ? `text-sm font-bold text-amber-600 hover:text-amber-700 transition-colors duration-200 py-1`
-            : cls(item.to)
-        }
+        className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isActive(item.to)
+          ? 'bg-amber-50 text-amber-600'
+          : 'text-gray-700 hover:bg-gray-50 hover:text-amber-600'
+          }`}
       >
         {item.label}
       </Link>
@@ -119,7 +131,7 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
               </div>
             </Link>
 
-            {/* ── Desktop Menu ── */}
+            {/* ── Desktop Main Menu ── */}
             <div className="hidden md:flex items-center gap-7">
               {renderMenuItems()}
             </div>
@@ -127,35 +139,60 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
             {/* ── Right side ── */}
             <div className="flex items-center gap-3">
               {isAuthenticated && user ? (
-                <div className="hidden sm:flex items-center gap-3">
-                  {/* User pill */}
-                  <Link
-                    to="/profile"
-                    className="flex items-center gap-2 bg-gray-50 hover:bg-amber-50 pl-1.5 pr-3.5 py-1.5 rounded-full transition-all duration-200 group border border-gray-100 hover:border-amber-200"
-                    title="Hồ sơ cá nhân"
-                  >
-                    <div className="w-7 h-7 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">
-                        {user.name.charAt(0).toUpperCase()}
+                <div className="hidden sm:flex items-center gap-3" ref={userMenuRef}>
+                  {/* User Dropdown Trigger */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setUserMenuOpen(!userMenuOpen)}
+                      className={`flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full transition-all duration-200 group border ${userMenuOpen ? 'bg-amber-50 border-amber-200 ring-2 ring-amber-100' : 'bg-gray-50 border-gray-100 hover:border-amber-200 hover:bg-amber-50'
+                        }`}
+                    >
+                      <div className="w-7 h-7 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">
+                          {user.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-amber-700 transition-colors max-w-[100px] truncate">
+                        {user.name}
                       </span>
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 group-hover:text-amber-700 transition-colors max-w-[120px] truncate">
-                      {user.name}
-                    </span>
-                  </Link>
+                      <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${userMenuOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6" /></svg>
+                    </button>
 
-                  {/* Logout button */}
-                  <button
-                    onClick={handleLogout}
-                    className="text-sm font-medium text-gray-400 hover:text-red-500 transition-colors duration-200 px-2 py-1"
-                    title="Đăng xuất"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                      <polyline points="16 17 21 12 16 7" />
-                      <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                  </button>
+                    {/* User Dropdown Menu */}
+                    <div className={`absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transition-all duration-200 origin-top-right ${userMenuOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
+                      }`}>
+                      <div className="p-2 border-b border-gray-50">
+                        <div className="px-3 py-2">
+                          <p className="text-sm font-bold text-gray-900 truncate">{user.name}</p>
+                          <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="p-1.5 space-y-0.5">
+                        <Link to="/profile" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-xl hover:bg-gray-50 hover:text-amber-600 transition-colors">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                          Hồ sơ cá nhân
+                        </Link>
+                        <Link to="/my-listings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-xl hover:bg-gray-50 hover:text-amber-600 transition-colors">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+                          Tin của tôi
+                        </Link>
+                        <Link to="/favorites" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-xl hover:bg-gray-50 hover:text-amber-600 transition-colors">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>
+                          Đã lưu
+                        </Link>
+                        <Link to="/create-listing" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-xl hover:bg-gray-50 hover:text-amber-600 transition-colors">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                          Đăng tin mới
+                        </Link>
+                      </div>
+                      <div className="p-1.5 border-t border-gray-50">
+                        <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 rounded-xl hover:bg-red-50 transition-colors">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                          Đăng xuất
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="hidden sm:flex items-center gap-2.5">
@@ -220,7 +257,7 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
             }`}
         >
           <div className="p-3 space-y-1">
-            {renderMenuItems(true)}
+            {renderMobileMenuItems()}
           </div>
 
           {/* Mobile auth section */}

@@ -84,10 +84,9 @@ export default function HomePage() {
     const loadFeatured = async () => {
       try {
         const allListings = await listingService.fetchListings()
-        const approved = allListings.filter(
-          (l) => l.status === 'active' && l.moderation.decision === 'APPROVED'
-        )
-        setFeaturedListings(approved.slice(0, 4))
+        // Only show approved/active listings on homepage
+        const approvedListings = allListings.filter(l => l.status === 'active')
+        setFeaturedListings(approvedListings.slice(0, 4))
       } catch (err) {
         console.error('Failed to load featured listings:', err)
       }

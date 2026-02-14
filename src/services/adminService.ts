@@ -28,7 +28,7 @@ interface ApiBrokerTakeoverResponse {
 function normalizeRole(role: string): UserRole {
     const r = role.toLowerCase();
     if (r === 'admin') return 'admin';
-    if (r === 'seller') return 'seller';
+    if (r === 'seller') return 'user'; // Seller is now merged into user
     if (r === 'broker') return 'broker';
     return 'user';
 }
@@ -104,6 +104,45 @@ export async function fetchDashboardStats(): Promise<AdminDashboardStats> {
     } catch (error) {
         console.error('Error fetching dashboard stats:', error);
         return { totalListings: 0, totalUsers: 0, pendingModeration: 0, totalRevenue: 0 };
+    }
+}
+
+// ─── Admin Listing Management ───────────────────────────────────────
+
+export async function fetchAdminListings(): Promise<any[]> {
+    try {
+        const data = await apiRequest<any[]>('/api/admin/listings', { auth: true });
+        return Array.isArray(data) ? data : [];
+    } catch (error) {
+        console.error('Error fetching admin listings:', error);
+        return [];
+    }
+}
+
+export async function approveListingAdmin(listingId: string): Promise<boolean> {
+    try {
+        await apiRequest(`/api/admin/listings/${listingId}/approve`, {
+            method: 'PUT',
+            auth: true,
+        });
+        return true;
+    } catch (error) {
+        console.error('Error approving listing:', error);
+        return false;
+    }
+}
+
+export async function rejectListingAdmin(listingId: string, reason?: string): Promise<boolean> {
+    try {
+        await apiRequest(`/api/admin/listings/${listingId}/reject`, {
+            method: 'PUT',
+            body: reason ? { reason } : undefined,
+            auth: true,
+        });
+        return true;
+    } catch (error) {
+        console.error('Error rejecting listing:', error);
+        return false;
     }
 }
 
