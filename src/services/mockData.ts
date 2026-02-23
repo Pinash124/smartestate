@@ -2,11 +2,12 @@ import { Listing, PropertyType, TransactionType, ModerationResult } from '@/type
 
 const mockModeration: ModerationResult = {
   status: 'auto_approved',
+  decision: 'APPROVED',
   riskScore: 10,
   flags: [],
   suggestions: [],
   reviewedAt: new Date(),
-  reviewedBy: null,
+  reviewedBy: undefined,
 }
 
 export const MOCK_LISTINGS: Listing[] = [

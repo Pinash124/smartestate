@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { listingService } from '../services/listing'
 import { Listing } from '../types'
-import { BuildingIcon, HouseIcon, TreeIcon, OfficeIcon, SparkleIcon, CheckCircleIcon, ChatIcon, MapPinIcon, AreaIcon, BedIcon, SearchIcon } from '../components/Icons'
+import { BuildingIcon, HouseIcon, TreeIcon, OfficeIcon, SparkleIcon, CheckCircleIcon, ChatIcon, MapPinIcon, AreaIcon, BedIcon } from '../components/Icons'
 
 // Animated counter hook
 function useCountUp(target: number, duration: number = 2000) {

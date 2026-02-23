@@ -20,6 +20,7 @@ import AdminRevenuePage from '@/pages/admin/RevenuePage'
 import AdminUserManagementPage from '@/pages/admin/UserManagementPage'
 
 import UserFavoritesPage from '@/pages/user/FavoritesPage'
+import UserAIRecommendPage from '@/pages/user/AIRecommendPage'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 import TestPage from './TestPage'
 
@@ -108,6 +109,8 @@ function AppContent({ isAuthenticated, setIsAuthenticated }: { isAuthenticated: 
         <Route path="/user/favorites" element={<UserFavoritesPage />} />
         <Route path="/favorite" element={<UserFavoritesPage />} />
         <Route path="/favorites" element={<UserFavoritesPage />} />
+        <Route path="/user/ai-recommend" element={<UserAIRecommendPage />} />
+        <Route path="/recommend" element={<UserAIRecommendPage />} />
 
         {/* Seller Routes (kept for backward compatibility) */}
         <Route path="/seller/create-listing" element={<SellerCreateListingPage />} />

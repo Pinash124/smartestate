@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../../services/auth'
 import { listingService } from '../../services/listing'
-import { Listing, ListingStatus } from '../../types'
+import { Listing } from '../../types'
 
 /* ─── Label maps ─── */
 const TYPE_LABELS: Record<string, string> = { apartment: 'Chung cư', house: 'Nhà', land: 'Đất', office: 'Văn phòng' }
