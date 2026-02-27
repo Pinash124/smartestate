@@ -121,11 +121,13 @@ export default function CreateListingPage() {
         priceAmount,
         priceCurrency: 'VND', // Default or from form if added
         areaM2: Number(formData.area),
-        address: {
-          city: formData.city,
-          district: formData.district,
-          street: formData.address,
-        },
+        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : undefined,
+        bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : undefined,
+        fullAddress: `${formData.address}, ${formData.district}, ${formData.city}`,
+        city: formData.city,
+        district: formData.district,
+        street: formData.address,
+        // lat/lng/ward/virtualTourUrl not supported in form yet
       }
 
       const created = await listingService.createListingRemote(payload)
@@ -133,10 +135,14 @@ export default function CreateListingPage() {
         // Success animation or redirect
         navigate('/listing/' + created.id)
       } else {
+        // normally we should never hit this branch since errors are thrown
         setSubmitError('Có lỗi xảy ra khi tạo tin đăng. Vui lòng thử lại.')
       }
-    } catch {
-      setSubmitError('Có lỗi kết nối. Vui lòng kiểm tra lại mạng.')
+    } catch (err: any) {
+      // show actual error message if available
+      console.error('submit error', err)
+      const msg = err?.message || 'Có lỗi kết nối. Vui lòng kiểm tra lại mạng.'
+      setSubmitError(msg)
     } finally {
       setLoading(false)
     }
@@ -162,6 +168,12 @@ export default function CreateListingPage() {
           </h1>
           <p className="text-gray-300 max-w-2xl mx-auto">
             Tiếp cận hàng nghìn khách hàng tiềm năng. Đăng tin nhanh chóng, hiệu quả và chuyên nghiệp.
+          </p>
+        </div>
+        {/* note about moderation */}
+        <div className="max-w-4xl mx-auto mt-6 px-4 text-center">
+          <p className="text-sm text-gray-600">
+            Sau khi gửi tin, nó sẽ được gửi tới quản trị viên để duyệt. Tin đăng chỉ xuất hiện với người khác sau khi được duyệt.
           </p>
         </div>
       </div>

@@ -22,7 +22,6 @@ import AdminUserManagementPage from '@/pages/admin/UserManagementPage'
 import UserFavoritesPage from '@/pages/user/FavoritesPage'
 import UserAIRecommendPage from '@/pages/user/AIRecommendPage'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
-import TestPage from './TestPage'
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
@@ -89,9 +88,6 @@ function AppContent({ isAuthenticated, setIsAuthenticated }: { isAuthenticated: 
     <div className="min-h-screen bg-gray-50">
       {!isAdminRoute && <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />}
       <Routes>
-        {/* Test Route */}
-        <Route path="/test-css" element={<TestPage />} />
-
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />

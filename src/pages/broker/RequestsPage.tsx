@@ -11,8 +11,8 @@ export default function BrokerRequestsPage() {
   const [filter, setFilter] = useState<'pending' | 'accepted' | 'all'>('pending')
   const [loading, setLoading] = useState(true)
 
-  // Giả lập một ID broker để xem dữ liệu nếu chưa đăng nhập
-  const mockBrokerId = user?.id || 1
+  // brokerId từ người dùng đã đăng nhập
+  const brokerId = user?.id
 
   useEffect(() => {
     // ĐÃ BỎ: Đoạn check redirect nếu không phải broker
@@ -20,19 +20,24 @@ export default function BrokerRequestsPage() {
     const loadListings = async () => {
       const allListings = await listingService.getAllListings()
 
-      // Lọc các tin có yêu cầu broker (sử dụng ID user hiện tại hoặc ID giả lập)
+      // Nếu chưa đăng nhập, chuyển đến trang đăng nhập
+      if (!brokerId) {
+        navigate('/login')
+        return
+      }
+
+      // Lọc các tin có yêu cầu broker (sử dụng ID user hiện tại)
       const brokerListings = allListings.filter(
         (l: Listing) =>
           l.brokerRequests &&
-          l.brokerRequests.some((br: any) => br.brokerId === mockBrokerId)
+          l.brokerRequests.some((br: any) => br.brokerId === brokerId)
       )
-
       setListings(brokerListings)
       setLoading(false)
     }
 
     loadListings()
-  }, [user, mockBrokerId])
+  }, [brokerId])
 
   // ĐÃ BỎ: Đoạn return báo lỗi "Không có quyền truy cập"
 
@@ -46,7 +51,7 @@ export default function BrokerRequestsPage() {
 
   const filteredListings = listings.filter((l) => {
     if (filter === 'all') return true
-    const request = l.brokerRequests?.find((br) => br.brokerId === mockBrokerId)
+    const request = l.brokerRequests?.find((br) => br.brokerId === brokerId)
     return request?.status === filter
   })
 
@@ -79,7 +84,7 @@ export default function BrokerRequestsPage() {
               }`}
           >
             Chờ xử lý (
-            {listings.filter((l) => l.brokerRequests?.some((br) => br.brokerId === mockBrokerId && br.status === 'pending')).length}
+            {listings.filter((l) => l.brokerRequests?.some((br) => br.brokerId === brokerId && br.status === 'pending')).length}
             )
           </button>
           <button
@@ -90,7 +95,7 @@ export default function BrokerRequestsPage() {
               }`}
           >
             Đã chấp nhận (
-            {listings.filter((l) => l.brokerRequests?.some((br) => br.brokerId === mockBrokerId && br.status === 'accepted')).length}
+            {listings.filter((l) => l.brokerRequests?.some((br) => br.brokerId === brokerId && br.status === 'accepted')).length}
             )
           </button>
         </div>
@@ -103,7 +108,7 @@ export default function BrokerRequestsPage() {
         ) : (
           <div className="grid grid-cols-1 gap-6">
             {filteredListings.map((listing) => {
-              const request = listing.brokerRequests?.find((br) => br.brokerId === mockBrokerId)
+              const request = listing.brokerRequests?.find((br) => br.brokerId === brokerId)
               if (!request) return null
 
               return (
