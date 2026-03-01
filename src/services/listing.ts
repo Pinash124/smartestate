@@ -12,7 +12,6 @@ import {
 } from '@/types';
 import { API_BASE_URL, apiRequest, ApiError } from './api';
 import { authService } from './auth';
-import { MOCK_LISTINGS } from './mockData';
 
 export const LISTING_STATUS: Record<string, ListingStatus> = {
   DRAFT: 'draft',
@@ -89,16 +88,8 @@ export class AIModerationService {
       }
     }
 
-    // Duplicate check
-    const allListings = JSON.parse(localStorage.getItem('listings') || '[]') as Listing[];
-    const duplicates = allListings.filter(
-      (l) => l.sellerId === listing.sellerId && l.title === listing.title
-    );
-    if (duplicates.length > 0) {
-      flags.push('Có tin đăng trùng lặp từ cùng người bán');
-      riskScore += 15;
-    }
-
+    // Duplicate check could be implemented via API if needed
+    // (removed localStorage dependency to avoid using mock data)
     // Determine decision
     let decision: 'APPROVED' | 'REJECTED' | 'NEED_REVIEW';
     let status: ModerationStatus;
@@ -232,8 +223,8 @@ export class ListingService {
       if (error instanceof ApiError && error.status === 404) {
         return null;
       }
-      // Return mock data when API is unavailable
-      return MOCK_LISTINGS.find((listing) => listing.id === id) || null;
+      // no fallback, API only
+      return null;
     }
   }
 
@@ -243,8 +234,8 @@ export class ListingService {
       return Array.isArray(data) ? data.map((item) => this.mapApiListing(item)) : [];
     } catch (error) {
       console.error('Error fetching listings:', error);
-      // Return mock data when API is unavailable
-      return MOCK_LISTINGS;
+      // no mock fallback, return empty list
+      return [];
     }
   }
 
@@ -274,8 +265,13 @@ export class ListingService {
       return this.mapApiListing(data);
     } catch (error) {
       console.error('Error creating listing:', error);
-      if (error instanceof ApiError && error.status === 403) {
-        throw new Error('Bạn không có quyền tạo tin đăng');
+      if (error instanceof ApiError) {
+        if (error.status === 401) {
+          throw new Error('Bạn cần đăng nhập lại (phiên đã hết hạn)');
+        }
+        if (error.status === 403) {
+          throw new Error('Bạn không có quyền tạo tin đăng');
+        }
       }
       throw error;
     }

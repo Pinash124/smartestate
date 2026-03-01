@@ -198,6 +198,20 @@ export default function ListingDetailPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* moderation notice for owner */}
+        {currentUser && listing && (listing.sellerId === currentUser.id || listing.responsibleBrokerId === currentUser.id) &&
+          listing.moderation.decision !== 'APPROVED' && (
+            <div className="mb-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800">
+              Tin đăng của bạn đang chờ duyệt bởi quản trị viên. Xin vui lòng chờ.
+            </div>
+        )}
+        {/* moderation notice for owner */}
+        {currentUser && listing && (listing.sellerId === currentUser.id || listing.responsibleBrokerId === currentUser.id) &&
+          listing.moderation.decision !== 'APPROVED' && (
+            <div className="mb-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800">
+              Tin đăng của bạn đang chờ duyệt bởi quản trị viên. Xin vui lòng chờ.
+            </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           {/* LEFT COLUMN: Images & Description */}

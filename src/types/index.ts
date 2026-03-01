@@ -231,5 +231,17 @@ export interface ApiCreateListingRequest {
   priceAmount: number;
   priceCurrency: string;
   areaM2: number;
-  address: ApiAddress;
+  // optional extras that mirror backend DTO
+  bedrooms?: number;
+  bathrooms?: number;
+  fullAddress?: string;
+  city?: string;
+  district?: string;
+  ward?: string;
+  street?: string;
+  lat?: number;
+  lng?: number;
+  virtualTourUrl?: string;
+  // original address object kept for backward compatibility (ignored by backend)
+  address?: ApiAddress;
 }

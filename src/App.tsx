@@ -92,9 +92,6 @@ function AppContent({ isAuthenticated, setIsAuthenticated }: { isAuthenticated: 
     <div className="min-h-screen bg-gray-50">
       {!isAdminRoute && <Navbar isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />}
       <Routes>
-        {/* Test Route */}
-        <Route path="/test-css" element={<TestPage />} />
-
         {/* Public Routes */}
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />

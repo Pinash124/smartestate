@@ -68,7 +68,7 @@ export class AuthService {
   private normalizeRole(role: ApiUserRole | UserRole): UserRole {
     const normalized = role.toString().toLowerCase();
     if (normalized === 'admin') return 'admin';
-    if (normalized === 'seller') return 'user'; // Seller is now merged into user
+    if (normalized === 'seller') return 'seller'; // keep seller role so UI can distinguish
     if (normalized === 'broker') return 'broker';
     return 'user';
   }
@@ -117,9 +117,19 @@ export class AuthService {
       localStorage.setItem('currentUser', JSON.stringify(user));
       return { success: true };
     } catch (error) {
-      // If API is down, allow demo login
-      console.warn('API unavailable, using demo login mode');
+      // distinguish between authentication failure and network/server errors
+      if (error instanceof ApiError) {
+        // if credentials were wrong or user not found, propagate error to UI
+        if (error.status === 401 || error.status === 403) {
+          return { success: false, error: { message: error.message || 'Đăng nhập thất bại', code: error.code } };
+        }
+        // other HTTP errors may indicate server problem; fall through to demo fallback
+        console.warn('[Login] API returned error, falling back to demo mode', error);
+      } else {
+        console.warn('[Login] Network error, using demo login mode', error);
+      }
 
+      // If we reach here it means the API is unreachable (network error or 5xx)
       const demoToken = 'demo_token_' + Date.now();
       setToken(demoToken);
 
