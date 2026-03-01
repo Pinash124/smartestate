@@ -6,6 +6,7 @@ const MENU_ITEMS = [
     { name: 'Duyệt tin đăng', path: '/admin/moderation' },
     { name: 'Người dùng', path: '/admin/users' },
     { name: 'Doanh thu', path: '/admin/revenue' },
+    { name: 'Thanh toán điểm', path: '/admin/payments' },
 ]
 
 export default function AdminSidebar() {

@@ -91,6 +91,8 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
         { to: '/create-listing', label: 'Đăng tin mới' },
         { to: '/my-listings', label: 'Tin của tôi' },
         { to: '/favorites', label: 'Đã lưu' },
+        { to: '/points', label: 'Điểm của tôi' },
+        { to: '/takeover', label: 'Ủy quyền Broker' },
       )
     }
 
@@ -183,6 +185,22 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
                         <Link to="/create-listing" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-xl hover:bg-gray-50 hover:text-amber-600 transition-colors">
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
                           Đăng tin mới
+                        </Link>
+                        <Link to="/points" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-xl hover:bg-gray-50 hover:text-amber-600 transition-colors">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="8" cy="8" r="6" />
+                            <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
+                          </svg>
+                          Điểm của tôi
+                        </Link>
+                        <Link to="/takeover" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-xl hover:bg-gray-50 hover:text-amber-600 transition-colors">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                          </svg>
+                          Ủy quyền Broker
                         </Link>
                       </div>
                       <div className="p-1.5 border-t border-gray-50">

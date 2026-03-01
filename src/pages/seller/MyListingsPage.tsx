@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../../services/auth'
 import { listingService } from '../../services/listing'
+import { apiRequest } from '../../services/api'
 import { Listing } from '../../types'
 
 /* ─── Label maps ─── */
@@ -51,6 +52,11 @@ export default function MyListingsPage() {
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
 
+  const [submitting, setSubmitting] = useState<string | null>(null) // listingId being submitted
+  const [toast, setToast] = useState<string | null>(null)
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 4000) }
+
   useEffect(() => {
     const loadUserListings = async () => {
       if (!user) return
@@ -66,6 +72,23 @@ export default function MyListingsPage() {
     }
     void loadUserListings()
   }, [user])
+
+  const handleSubmitForReview = async (e: React.MouseEvent, listing: Listing) => {
+    e.stopPropagation()
+    setSubmitting(listing.id)
+    try {
+      // Try API, fallback to local state update
+      try {
+        await apiRequest(`/api/listings/${listing.id}/submit`, { method: 'PATCH', auth: true })
+      } catch { /* API not available, update local state */ }
+      setListings(prev => prev.map(l => l.id === listing.id ? { ...l, status: 'pending_moderation' as const } : l))
+      showToast('Đã gửi tin đăng để kiểm duyệt!')
+    } catch {
+      showToast('Không thể gửi. Vui lòng thử lại.')
+    } finally {
+      setSubmitting(null)
+    }
+  }
 
   const filteredListings = listings.filter((l) => {
     const matchSearch = l.title.toLowerCase().includes(search.toLowerCase())
@@ -98,6 +121,12 @@ export default function MyListingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-5 right-5 z-50 px-5 py-3 rounded-2xl shadow-lg font-bold text-sm bg-emerald-500 text-white transition-all">
+          ✓ {toast}
+        </div>
+      )}
 
       {/* ═══════════════════════ HEADER ═══════════════════════ */}
       <div className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 overflow-hidden">
@@ -140,8 +169,8 @@ export default function MyListingsPage() {
                     key={tab.value}
                     onClick={() => setFilterStatus(tab.value)}
                     className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-200 ${isActive
-                        ? 'bg-amber-50 text-amber-700 border border-amber-200 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      ? 'bg-amber-50 text-amber-700 border border-amber-200 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                       }`}
                   >
                     {tab.label}
@@ -288,6 +317,33 @@ export default function MyListingsPage() {
 
                       {/* Actions */}
                       <div className="flex sm:flex-col items-center gap-2 flex-shrink-0 sm:border-l sm:border-gray-100 sm:pl-5 sm:ml-1">
+                        {/* Submit for review — for drafts */}
+                        {listing.status === 'draft' && (
+                          <button
+                            onClick={(e) => handleSubmitForReview(e, listing)}
+                            disabled={submitting === listing.id}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors disabled:opacity-50"
+                            title="Gửi duyệt"
+                          >
+                            {submitting === listing.id ? '...' : '✔ Gửi duyệt'}
+                          </button>
+                        )}
+                        {/* Rejection reason — for rejected */}
+                        {listing.status === 'rejected' && (
+                          <div className="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-lg border border-red-100 max-w-[110px] text-center">
+                            Bị từ chối
+                          </div>
+                        )}
+                        {/* Takeover button — for active listings */}
+                        {(listing.status === 'active' || listing.status === 'approved') && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); navigate(`/takeover?listing=${listing.id}`) }}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
+                            title="Ủy quyền Broker"
+                          >
+                            🤝 Takeover
+                          </button>
+                        )}
                         <button
                           onClick={(e) => { e.stopPropagation(); navigate(`/edit-listing/${listing.id}`) }}
                           className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"

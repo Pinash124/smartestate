@@ -111,6 +111,28 @@ export interface Payment {
   description: string;
 }
 
+// Points types
+export interface PointPackage {
+  id: string;
+  name: string;
+  points: number;
+  price: number;
+  description: string;
+  popular?: boolean;
+}
+
+export interface PointTransaction {
+  id: string;
+  userId: string;
+  userEmail?: string;
+  packageId: string;
+  packageName?: string;
+  points: number;
+  amount: number;
+  status: 'PAID' | 'PENDING' | 'FAILED';
+  createdAt: string;
+}
+
 // Recommendation types
 export interface UserPreferences {
   transaction?: TransactionType;

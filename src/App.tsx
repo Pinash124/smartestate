@@ -18,10 +18,13 @@ import BrokerRequestsPage from '@/pages/broker/RequestsPage'
 import AdminModerationPage from '@/pages/admin/ModerationPage'
 import AdminRevenuePage from '@/pages/admin/RevenuePage'
 import AdminUserManagementPage from '@/pages/admin/UserManagementPage'
+import AdminPaymentsPage from '@/pages/admin/AdminPaymentsPage'
 
 import UserFavoritesPage from '@/pages/user/FavoritesPage'
 import UserAIRecommendPage from '@/pages/user/AIRecommendPage'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
+import PointsPage from '@/pages/PointsPage'
+import TakeoverPage from '@/pages/seller/TakeoverPage'
 import TestPage from './TestPage'
 
 // Error Boundary Component
@@ -130,6 +133,14 @@ function AppContent({ isAuthenticated, setIsAuthenticated }: { isAuthenticated: 
         <Route path="/admin/moderation" element={<AdminModerationPage />} />
         <Route path="/admin/revenue" element={<AdminRevenuePage />} />
         <Route path="/admin/users" element={<AdminUserManagementPage />} />
+        <Route path="/admin/payments" element={<AdminPaymentsPage />} />
+
+        {/* Points Route */}
+        <Route path="/points" element={<PointsPage />} />
+
+        {/* Takeover Routes */}
+        <Route path="/seller/takeover" element={<TakeoverPage />} />
+        <Route path="/takeover" element={<TakeoverPage />} />
       </Routes>
       {!isAdminRoute && <Footer />}
       {!isAdminRoute && <AIFloatingWidget />}
