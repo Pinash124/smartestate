@@ -25,7 +25,6 @@ import UserAIRecommendPage from '@/pages/user/AIRecommendPage'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 import PointsPage from '@/pages/PointsPage'
 import TakeoverPage from '@/pages/seller/TakeoverPage'
-import TestPage from './TestPage'
 
 // Error Boundary Component
 class ErrorBoundary extends React.Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
