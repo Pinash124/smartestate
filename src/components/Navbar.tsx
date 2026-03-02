@@ -53,6 +53,7 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
     const items: { to: string; label: string; highlight?: boolean }[] = [
       { to: '/', label: 'Trang chủ' },
       { to: '/listings', label: 'Tin đăng' }, // Keep this public
+      { to: '/messages', label: 'Cộng đồng' },
     ]
 
     // Admin still gets a direct link as it's a separate dashboard
@@ -80,6 +81,7 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
     const items: { to: string; label: string }[] = [
       { to: '/', label: 'Trang chủ' },
       { to: '/listings', label: 'Tin đăng' },
+      { to: '/messages', label: 'Cộng đồng' },
     ]
 
     if (role === 'admin') items.push({ to: '/admin', label: 'Bảng điều khiển' })
@@ -90,7 +92,6 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
       items.push(
         { to: '/create-listing', label: 'Đăng tin mới' },
         { to: '/my-listings', label: 'Tin của tôi' },
-        { to: '/favorites', label: 'Đã lưu' },
         { to: '/points', label: 'Điểm của tôi' },
         { to: '/takeover', label: 'Ủy quyền Broker' },
       )
@@ -177,10 +178,6 @@ export default function Navbar({ isAuthenticated, setIsAuthenticated }: NavbarPr
                         <Link to="/my-listings" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-xl hover:bg-gray-50 hover:text-amber-600 transition-colors">
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
                           Tin của tôi
-                        </Link>
-                        <Link to="/favorites" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-xl hover:bg-gray-50 hover:text-amber-600 transition-colors">
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" /></svg>
-                          Đã lưu
                         </Link>
                         <Link to="/create-listing" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-xl hover:bg-gray-50 hover:text-amber-600 transition-colors">
                           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>

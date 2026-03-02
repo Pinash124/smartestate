@@ -43,7 +43,7 @@ class ChatService {
           auth: true,
         }
       )
-      
+
       // Convert response to Conversation type
       return {
         id: response.conversationId,
@@ -66,7 +66,7 @@ class ChatService {
         `/api/messages/conversations/${conversationId}`,
         { auth: true }
       )
-      
+
       return {
         id: response.id,
         participants: response.participants,
@@ -74,13 +74,13 @@ class ChatService {
         createdAt: new Date(response.createdAt),
         lastMessage: response.lastMessage
           ? {
-              id: response.lastMessage.id,
-              conversationId: response.lastMessage.conversationId,
-              senderId: response.lastMessage.senderId,
-              senderName: response.lastMessage.senderName,
-              content: response.lastMessage.content,
-              createdAt: new Date(response.lastMessage.createdAt),
-            }
+            id: response.lastMessage.id,
+            conversationId: response.lastMessage.conversationId,
+            senderId: response.lastMessage.senderId,
+            senderName: response.lastMessage.senderName,
+            content: response.lastMessage.content,
+            createdAt: new Date(response.lastMessage.createdAt),
+          }
           : undefined,
         lastMessageAt: response.lastMessageAt
           ? new Date(response.lastMessageAt)
@@ -109,13 +109,13 @@ class ChatService {
         createdAt: new Date(conv.createdAt),
         lastMessage: conv.lastMessage
           ? {
-              id: conv.lastMessage.id,
-              conversationId: conv.lastMessage.conversationId,
-              senderId: conv.lastMessage.senderId,
-              senderName: conv.lastMessage.senderName,
-              content: conv.lastMessage.content,
-              createdAt: new Date(conv.lastMessage.createdAt),
-            }
+            id: conv.lastMessage.id,
+            conversationId: conv.lastMessage.conversationId,
+            senderId: conv.lastMessage.senderId,
+            senderName: conv.lastMessage.senderName,
+            content: conv.lastMessage.content,
+            createdAt: new Date(conv.lastMessage.createdAt),
+          }
           : undefined,
         lastMessageAt: conv.lastMessageAt
           ? new Date(conv.lastMessageAt)
@@ -184,12 +184,14 @@ class ChatService {
   }
 
   /**
-   * Mark message as read (optional - may implement later)
+   * Mark message as read
    */
   async markAsRead(messageId: string): Promise<boolean> {
     try {
-      // TODO: Implement if backend has endpoint
-      console.log('Mark as read:', messageId)
+      await apiRequest(`/api/messages/${messageId}/read`, {
+        method: 'PATCH',
+        auth: true
+      })
       return true
     } catch (error) {
       console.error('Error marking as read:', error)
@@ -198,19 +200,13 @@ class ChatService {
   }
 
   /**
-   * Get unread message count (TODO: implement with backend)
+   * Get unread message count
    */
-  async getUnreadCount(userId: string): Promise<number> {
+  async getUnreadCount(): Promise<number> {
     try {
-      const conversations = await this.getUserConversations()
-      let unreadCount = 0
-      
-      for (const conv of conversations) {
-        const messages = await this.getMessages(conv.id as string)
-        unreadCount += messages.filter((m) => !m.readAt && m.senderId !== userId).length
-      }
-      
-      return unreadCount
+      // Assuming a dedicated endpoint is available
+      const response = await apiRequest<{ count: number }>('/api/messages/unread-count', { auth: true })
+      return response.count
     } catch (error) {
       console.error('Error getting unread count:', error)
       return 0

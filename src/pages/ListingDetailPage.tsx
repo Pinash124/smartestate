@@ -204,14 +204,14 @@ export default function ListingDetailPage() {
             <div className="mb-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800">
               Tin đăng của bạn đang chờ duyệt bởi quản trị viên. Xin vui lòng chờ.
             </div>
-        )}
+          )}
         {/* moderation notice for owner */}
         {currentUser && listing && (listing.sellerId === currentUser.id || listing.responsibleBrokerId === currentUser.id) &&
           listing.moderation.decision !== 'APPROVED' && (
             <div className="mb-4 p-4 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-800">
               Tin đăng của bạn đang chờ duyệt bởi quản trị viên. Xin vui lòng chờ.
             </div>
-        )}
+          )}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
           {/* LEFT COLUMN: Images & Description */}
@@ -361,10 +361,10 @@ export default function ListingDetailPage() {
 
                 <button
                   onClick={handleStartChat}
-                  className="w-full bg-white border-2 border-green-500 text-green-600 font-bold py-3 rounded-xl hover:bg-green-50 transition flex items-center justify-center gap-2"
+                  className="w-full bg-white border-2 border-blue-500 text-blue-600 font-bold py-3 rounded-xl hover:bg-blue-50 transition flex items-center justify-center gap-2"
                 >
                   <ChatIcon className="w-5 h-5" />
-                  Nhắn tin qua Zalo
+                  Liên hệ người bán
                 </button>
               </div>
             </div>

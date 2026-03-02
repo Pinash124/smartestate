@@ -134,15 +134,17 @@ export class AuthService {
       setToken(demoToken);
 
       const name = email.split('@')[0] || email;
-      const role = email.includes('admin') ? 'admin' : email.includes('broker') ? 'broker' : email.includes('seller') ? 'seller' : 'user';
+      const isAdminLogin = email.includes('admin') || email === 'admin';
+      const role = isAdminLogin ? 'admin' : email.includes('broker') ? 'broker' : email.includes('seller') ? 'seller' : 'user';
+
       const user: User = {
         id: 'demo-user-' + Date.now(),
-        name,
-        email,
+        name: isAdminLogin ? 'Quản trị viên (Demo)' : name,
+        email: isAdminLogin && !email.includes('@') ? 'admin@demo.com' : email,
         password: '',
         role: role as UserRole,
         profile: {
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${isAdminLogin ? 'Admin' : name}`,
         },
         createdAt: new Date(),
         updatedAt: new Date(),
