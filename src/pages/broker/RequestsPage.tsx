@@ -121,7 +121,6 @@ export default function BrokerRequestsPage() {
             </button>
           ))}
         </div>
-        </div>
 
         {/* Loading */}
         {loading ? (
