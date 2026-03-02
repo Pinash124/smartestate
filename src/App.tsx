@@ -20,7 +20,6 @@ import AdminRevenuePage from '@/pages/admin/RevenuePage'
 import AdminUserManagementPage from '@/pages/admin/UserManagementPage'
 import AdminPaymentsPage from '@/pages/admin/AdminPaymentsPage'
 
-import UserFavoritesPage from '@/pages/user/FavoritesPage'
 import UserAIRecommendPage from '@/pages/user/AIRecommendPage'
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage'
 import PointsPage from '@/pages/PointsPage'
@@ -99,15 +98,16 @@ function AppContent({ isAuthenticated, setIsAuthenticated }: { isAuthenticated: 
         <Route path="/listing/:id" element={<ListingDetailPage />} />
 
         {/* Chat Route */}
+        <Route path="/messages" element={<ChatPage />} />
         <Route path="/messages/:id" element={<ChatPage />} />
 
         {/* User Routes */}
         <Route path="/user/profile" element={<UserProfilePage />} />
         <Route path="/profile" element={<UserProfilePage />} />
 
-        <Route path="/user/favorites" element={<UserFavoritesPage />} />
-        <Route path="/favorite" element={<UserFavoritesPage />} />
-        <Route path="/favorites" element={<UserFavoritesPage />} />
+        <Route path="/user/favorites" element={<SellerMyListingsPage />} />
+        <Route path="/favorite" element={<SellerMyListingsPage />} />
+        <Route path="/favorites" element={<SellerMyListingsPage />} />
         <Route path="/user/ai-recommend" element={<UserAIRecommendPage />} />
         <Route path="/recommend" element={<UserAIRecommendPage />} />
 

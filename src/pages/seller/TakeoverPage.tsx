@@ -69,7 +69,6 @@ export default function TakeoverPage() {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-3xl shadow-lg p-12 text-center max-w-md w-full">
-                    <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">✅</div>
                     <h2 className="text-2xl font-black text-gray-900 mb-3">Yêu cầu đã được gửi!</h2>
                     <p className="text-gray-500 text-sm mb-6">
                         Broker sẽ xem xét và phản hồi yêu cầu của bạn. Hệ thống sẽ trừ <b>30 điểm</b> khi broker chấp nhận và takeover hoàn thành.
@@ -103,7 +102,6 @@ export default function TakeoverPage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent" />
                 <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-12">
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm">🤝</div>
                         <div>
                             <h1 className="text-3xl font-black text-white">Ủy quyền Broker (Takeover)</h1>
                             <p className="text-slate-300 text-sm mt-1">Chọn bài đăng và broker bạn muốn ủy quyền quản lý</p>
@@ -115,7 +113,6 @@ export default function TakeoverPage() {
             <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
                 {/* Cost warning banner */}
                 <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3 mb-8">
-                    <span className="text-amber-500 text-xl mt-0.5">⚠️</span>
                     <div>
                         <p className="font-bold text-amber-800 text-sm">Lưu ý về phí Takeover</p>
                         <p className="text-amber-700 text-xs mt-0.5">
@@ -150,23 +147,20 @@ export default function TakeoverPage() {
                                             key={l.id}
                                             onClick={() => setSelectedListing(l.id)}
                                             className={`w-full text-left p-3.5 rounded-xl border-2 transition-all ${selectedListing === l.id
-                                                    ? 'border-amber-400 bg-amber-50'
-                                                    : 'border-gray-100 hover:border-gray-200 bg-white'
+                                                ? 'border-amber-400 bg-amber-50'
+                                                : 'border-gray-100 hover:border-gray-200 bg-white'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3">
                                                 {l.images?.[0] ? (
                                                     <img src={l.images[0]} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
                                                 ) : (
-                                                    <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-300 shrink-0">🏠</div>
+                                                    <div className="w-12 h-12 rounded-lg bg-gray-100 shrink-0"></div>
                                                 )}
                                                 <div className="min-w-0">
                                                     <p className="font-bold text-gray-900 text-sm truncate">{l.title}</p>
                                                     <p className="text-xs text-gray-400 truncate">{l.city} · {l.price}</p>
                                                 </div>
-                                                {selectedListing === l.id && (
-                                                    <span className="ml-auto text-amber-500 font-black text-lg shrink-0">✓</span>
-                                                )}
                                             </div>
                                         </button>
                                     ))}
@@ -191,8 +185,8 @@ export default function TakeoverPage() {
                                             key={b.id}
                                             onClick={() => setSelectedBroker(b.id)}
                                             className={`w-full text-left p-3.5 rounded-xl border-2 transition-all ${selectedBroker === b.id
-                                                    ? 'border-amber-400 bg-amber-50'
-                                                    : 'border-gray-100 hover:border-gray-200 bg-white'
+                                                ? 'border-amber-400 bg-amber-50'
+                                                : 'border-gray-100 hover:border-gray-200 bg-white'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3">
@@ -205,9 +199,6 @@ export default function TakeoverPage() {
                                                     <p className="font-bold text-gray-900 text-sm">{b.name}</p>
                                                     <p className="text-xs text-gray-400">{b.email}</p>
                                                 </div>
-                                                {selectedBroker === b.id && (
-                                                    <span className="ml-auto text-amber-500 font-black text-lg shrink-0">✓</span>
-                                                )}
                                             </div>
                                         </button>
                                     ))}
@@ -221,7 +212,7 @@ export default function TakeoverPage() {
                             disabled={!selectedListing || !selectedBroker || submitting}
                             className="w-full py-4 rounded-2xl font-bold text-base bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-200 hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                            {submitting ? 'Đang gửi yêu cầu...' : '🤝 Gửi yêu cầu Takeover (−30 điểm)'}
+                            {submitting ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu Takeover (−30 điểm)'}
                         </button>
                     </div>
 

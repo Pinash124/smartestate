@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { authService } from '../../services/auth'
 import { listingService } from '../../services/listing'
 import { apiRequest } from '../../services/api'
@@ -23,6 +23,7 @@ const STATUS_TABS: { value: string; label: string }[] = [
   { value: 'active', label: 'Đang bán' },
   { value: 'pending_moderation', label: 'Chờ duyệt' },
   { value: 'done', label: 'Hoàn thành' },
+  { value: 'saved', label: 'Đã lưu' },
 ]
 
 /* ─── SVG helpers ─── */
@@ -45,9 +46,11 @@ const SkeletonRow = () => (
 
 export default function MyListingsPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const user = authService.getCurrentUser()
 
   const [listings, setListings] = useState<Listing[]>([])
+  const [savedListings, setSavedListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
@@ -61,9 +64,13 @@ export default function MyListingsPage() {
     const loadUserListings = async () => {
       if (!user) return
       try {
-        const allListings = await listingService.fetchListings()
+        const [allListings, favs] = await Promise.all([
+          listingService.fetchListings(),
+          listingService.getFavoriteListings()
+        ])
         const userListings = allListings.filter((l) => l.sellerId === user.id)
         setListings(userListings)
+        setSavedListings(favs)
       } catch (error) {
         console.error('Error loading listings:', error)
       } finally {
@@ -72,6 +79,15 @@ export default function MyListingsPage() {
     }
     void loadUserListings()
   }, [user])
+
+  useEffect(() => {
+    if (location.pathname.includes('favorite')) {
+      setFilterStatus('saved')
+    } else {
+      const params = new URLSearchParams(location.search)
+      if (params.get('tab') === 'saved') setFilterStatus('saved')
+    }
+  }, [location])
 
   const handleSubmitForReview = async (e: React.MouseEvent, listing: Listing) => {
     e.stopPropagation()
@@ -90,13 +106,29 @@ export default function MyListingsPage() {
     }
   }
 
-  const filteredListings = listings.filter((l) => {
+  const handleRemoveFavorite = async (e: React.MouseEvent, listingId: string) => {
+    e.stopPropagation()
+    try {
+      const success = await listingService.removeFavorite(listingId)
+      if (success) {
+        setSavedListings(prev => prev.filter(l => l.id !== listingId))
+        showToast('Đã bỏ lưu tin đăng')
+      }
+    } catch {
+      showToast('Không thể bỏ lưu. Vui lòng thử lại.')
+    }
+  }
+
+  const isSavedTab = filterStatus === 'saved'
+  const sourceListings = isSavedTab ? savedListings : listings
+
+  const filteredListings = sourceListings.filter((l) => {
     const matchSearch = l.title.toLowerCase().includes(search.toLowerCase())
-    const matchStatus = filterStatus === 'all' || l.status === filterStatus
+    const matchStatus = filterStatus === 'all' || isSavedTab || l.status === filterStatus
     return matchSearch && matchStatus
   })
 
-  const countByStatus = (s: string) => s === 'all' ? listings.length : listings.filter(l => l.status === s).length
+  const countByStatus = (s: string) => s === 'all' ? listings.length : s === 'saved' ? savedListings.length : listings.filter(l => l.status === s).length
 
   /* ─── Not logged in ─── */
   if (!user) {
@@ -141,7 +173,7 @@ export default function MyListingsPage() {
                 Tin đăng của tôi
               </h1>
               <p className="text-amber-100 text-sm mt-1">
-                Quản lý {listings.length} tin đăng bất động sản
+                Quản lý {listings.length} tin đăng và {savedListings.length} tin đã lưu
               </p>
             </div>
             <button
@@ -317,62 +349,75 @@ export default function MyListingsPage() {
 
                       {/* Actions */}
                       <div className="flex sm:flex-col items-center gap-2 flex-shrink-0 sm:border-l sm:border-gray-100 sm:pl-5 sm:ml-1">
-                        {/* Submit for review — for drafts */}
-                        {listing.status === 'draft' && (
+                        {isSavedTab ? (
                           <button
-                            onClick={(e) => handleSubmitForReview(e, listing)}
-                            disabled={submitting === listing.id}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors disabled:opacity-50"
-                            title="Gửi duyệt"
+                            onClick={(e) => handleRemoveFavorite(e, listing.id)}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-red-50 text-red-500 border border-red-200 hover:bg-red-100 transition-colors"
+                            title="Bỏ lưu"
                           >
-                            {submitting === listing.id ? '...' : '✔ Gửi duyệt'}
+                            <Icon d="M6 18L18 6M6 6l12 12" cls="w-3.5 h-3.5" />
+                            Bỏ lưu
                           </button>
+                        ) : (
+                          <>
+                            {/* Submit for review — for drafts */}
+                            {listing.status === 'draft' && (
+                              <button
+                                onClick={(e) => handleSubmitForReview(e, listing)}
+                                disabled={submitting === listing.id}
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition-colors disabled:opacity-50"
+                                title="Gửi duyệt"
+                              >
+                                {submitting === listing.id ? '...' : '✔ Gửi duyệt'}
+                              </button>
+                            )}
+                            {/* Rejection reason — for rejected */}
+                            {listing.status === 'rejected' && (
+                              <div className="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-lg border border-red-100 max-w-[110px] text-center">
+                                Bị từ chối
+                              </div>
+                            )}
+                            {/* Takeover button — for active listings */}
+                            {(listing.status === 'active' || listing.status === 'approved') && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); navigate(`/takeover?listing=${listing.id}`) }}
+                                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
+                                title="Ủy quyền Broker"
+                              >
+                                Takeover
+                              </button>
+                            )}
+                            <button
+                              onClick={(e) => { e.stopPropagation(); navigate(`/edit-listing/${listing.id}`) }}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
+                              title="Chỉnh sửa"
+                            >
+                              <Icon d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" cls="w-3.5 h-3.5" />
+                              Sửa
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); navigate(`/chat?listing=${listing.id}`) }}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors"
+                              title="Nhắn tin"
+                            >
+                              <Icon d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" cls="w-3.5 h-3.5" />
+                              Chat
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (confirm('Bạn có chắc muốn xoá tin đăng này?')) {
+                                  setListings((prev) => prev.filter((l) => l.id !== listing.id))
+                                }
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-red-50 text-red-500 border border-red-200 hover:bg-red-100 transition-colors"
+                              title="Xoá"
+                            >
+                              <Icon d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" cls="w-3.5 h-3.5" />
+                              Xoá
+                            </button>
+                          </>
                         )}
-                        {/* Rejection reason — for rejected */}
-                        {listing.status === 'rejected' && (
-                          <div className="text-xs text-red-500 bg-red-50 px-2 py-1 rounded-lg border border-red-100 max-w-[110px] text-center">
-                            Bị từ chối
-                          </div>
-                        )}
-                        {/* Takeover button — for active listings */}
-                        {(listing.status === 'active' || listing.status === 'approved') && (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); navigate(`/takeover?listing=${listing.id}`) }}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition-colors"
-                            title="Ủy quyền Broker"
-                          >
-                            🤝 Takeover
-                          </button>
-                        )}
-                        <button
-                          onClick={(e) => { e.stopPropagation(); navigate(`/edit-listing/${listing.id}`) }}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors"
-                          title="Chỉnh sửa"
-                        >
-                          <Icon d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" cls="w-3.5 h-3.5" />
-                          Sửa
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); navigate(`/chat?listing=${listing.id}`) }}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors"
-                          title="Nhắn tin"
-                        >
-                          <Icon d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" cls="w-3.5 h-3.5" />
-                          Chat
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            if (confirm('Bạn có chắc muốn xoá tin đăng này?')) {
-                              setListings((prev) => prev.filter((l) => l.id !== listing.id))
-                            }
-                          }}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-red-50 text-red-500 border border-red-200 hover:bg-red-100 transition-colors"
-                          title="Xoá"
-                        >
-                          <Icon d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" cls="w-3.5 h-3.5" />
-                          Xoá
-                        </button>
                       </div>
                     </div>
                   </div>
